@@ -13,6 +13,7 @@ let solutionCols = null;
 let gameOver = false;
 
 // --- Puzzle Generation (Port of crossword2.py) ---
+// This section remains unchanged from the previous version.
 
 /**
  * Fetches words from a file, one word per line.
@@ -136,9 +137,12 @@ function createGrid() {
             cell.id = `cell-${r}-${c}`;
             cell.dataset.r = r;
             cell.dataset.c = c;
+            
+            // CRITICAL: Prevent native keyboard on mobile
+            cell.readOnly = true;
 
-            cell.addEventListener('input', handleInput);
-            cell.addEventListener('keydown', handleKeyDown);
+            // Allow clicking to focus
+            cell.addEventListener('click', (e) => e.target.focus());
 
             gridContainer.appendChild(cell);
         }
@@ -146,68 +150,106 @@ function createGrid() {
 }
 
 /**
- * Handles letter input in a cell.
- * @param {Event} e The input event.
+ * Centralized handler for both physical and virtual keyboard presses.
+ * @param {string} key The key pressed (e.g., "A", "DEL", "ENTER").
  */
-function handleInput(e) {
+function handleVirtualKeyPress(key) {
     if (gameOver) return;
 
-    const cell = e.target;
-    cell.value = cell.value.toUpperCase();
-
-    updateCellColor(cell);
-    checkWin();
-
-    // Auto-move to the next cell
-    if (cell.value) {
-        const { r, c } = cell.dataset;
-        focusNextCell(parseInt(r), parseInt(c));
+    let activeCell = document.querySelector('.cell:focus');
+    if (!activeCell) {
+        // If no cell is focused, focus the first one
+        activeCell = document.getElementById('cell-0-0');
+        activeCell.focus();
     }
-}
-
-/**
- * Handles navigation (arrows, backspace) between cells.
- * @param {KeyboardEvent} e The keydown event.
- */
-function handleKeyDown(e) {
-    if (gameOver) return;
-
-    const { r, c } = e.target.dataset;
+    
+    const { r, c } = activeCell.dataset;
     const row = parseInt(r);
     const col = parseInt(c);
 
-    let nextRow = row;
-    let nextCol = col;
+    if (key === 'DEL') {
+        if (activeCell.value) {
+            activeCell.value = '';
+            updateCellColor(activeCell);
+        } else {
+            const prevCell = focusPrevCell(row, col);
+            if (prevCell) {
+                prevCell.value = '';
+                updateCellColor(prevCell);
+            }
+        }
+    } else if (key === 'ENTER') {
+        // Move to the start of the next row, if it exists
+        if (row < GRID_SIZE - 1) {
+            document.getElementById(`cell-${row + 1}-0`).focus();
+        }
+    } else if (key.length === 1 && key.match(/[A-Z]/i)) {
+        activeCell.value = key.toUpperCase();
+        updateCellColor(activeCell);
+        checkWin();
+        if (!gameOver) {
+            focusNextCell(row, col);
+        }
+    }
+}
+
+
+/**
+ * Sets up listeners for the on-screen keyboard.
+ */
+function setupOnScreenKeyboard() {
+    document.querySelectorAll('#keyboard button').forEach(button => {
+        button.addEventListener('pointerdown', (e) => {
+            e.preventDefault(); // Prevent button from taking focus from the grid
+            handleVirtualKeyPress(e.target.dataset.key);
+        });
+    });
+}
+
+/**
+ * Handles physical keyboard events (arrows, letters, backspace).
+ */
+function handlePhysicalKeyDown(e) {
+    if (e.ctrlKey || e.metaKey) return; // Allow copy/paste etc.
+
+    let nextRow = -1;
+    let nextCol = -1;
+    
+    const activeCell = document.querySelector('.cell:focus');
+    if(activeCell) {
+        const {r, c} = activeCell.dataset;
+        nextRow = parseInt(r);
+        nextCol = parseInt(c);
+    }
 
     switch (e.key) {
         case 'ArrowUp':
-            if (row > 0) nextRow--;
-            e.preventDefault();
+            if (nextRow > 0) document.getElementById(`cell-${nextRow - 1}-${nextCol}`).focus();
             break;
         case 'ArrowDown':
-            if (row < GRID_SIZE - 1) nextRow++;
-            e.preventDefault();
+            if (nextRow < GRID_SIZE - 1) document.getElementById(`cell-${nextRow + 1}-${nextCol}`).focus();
             break;
         case 'ArrowLeft':
-            if (col > 0) nextCol--;
-            e.preventDefault();
+            if (nextCol > 0) document.getElementById(`cell-${nextRow}-${nextCol-1}`).focus();
             break;
         case 'ArrowRight':
-            if (col < GRID_SIZE - 1) nextCol++;
-            e.preventDefault();
+             if (nextCol < GRID_SIZE - 1) document.getElementById(`cell-${nextRow}-${nextCol+1}`).focus();
             break;
         case 'Backspace':
-            if (!e.target.value) {
-                 focusPrevCell(row, col);
-                 e.preventDefault();
-            }
-            return; // Don't focus on backspace itself
+            handleVirtualKeyPress('DEL');
+            break;
+        case 'Enter':
+            handleVirtualKeyPress('ENTER');
+            break;
         default:
+            if (e.key.length === 1 && e.key.match(/[a-z]/i)) {
+                handleVirtualKeyPress(e.key);
+            }
             return; // Do nothing for other keys
     }
-
-    document.getElementById(`cell-${nextRow}-${nextCol}`).focus();
+    e.preventDefault(); // Prevent default browser actions for handled keys
 }
+
 
 function focusNextCell(r, c) {
     let next_c = c + 1;
@@ -217,8 +259,11 @@ function focusNextCell(r, c) {
         next_r++;
     }
     if (next_r < GRID_SIZE) {
-        document.getElementById(`cell-${next_r}-${next_c}`).focus();
+        const nextCell = document.getElementById(`cell-${next_r}-${next_c}`);
+        if(nextCell) nextCell.focus();
+        return nextCell;
     }
+    return null;
 }
 
 function focusPrevCell(r, c) {
@@ -229,21 +274,19 @@ function focusPrevCell(r, c) {
         prev_r--;
     }
     if (prev_r >= 0) {
-        document.getElementById(`cell-${prev_r}-${prev_c}`).focus();
+        const prevCell = document.getElementById(`cell-${prev_r}-${prev_c}`);
+        if(prevCell) prevCell.focus();
+        return prevCell;
     }
+    return null;
 }
 
 
-/**
- * Updates a single cell's color based on its value.
- * @param {HTMLInputElement} cell The input element to update.
- */
 function updateCellColor(cell) {
     const { r, c } = cell.dataset;
     const playerLetter = cell.value;
 
     cell.classList.remove('correct', 'present', 'absent');
-
     if (!playerLetter) return;
 
     const correctLetter = solutionGrid[r][c];
@@ -259,47 +302,34 @@ function updateCellColor(cell) {
     }
 }
 
-/**
- * Checks if the player has solved the puzzle.
- */
 function checkWin() {
     for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
             const cell = document.getElementById(`cell-${r}-${c}`);
             if (cell.value !== solutionGrid[r][c]) {
-                return false; // Not won yet
+                return false;
             }
         }
     }
-    // If we get here, all cells are correct
     gameOver = true;
     infoText.textContent = 'Puzzle Solved! Well Done!';
     winOverlay.classList.remove('hidden');
+    // Optional: Lock orientation to portrait as a celebratory action or visual cue
+    // if (screen.orientation && screen.orientation.lock) {
+    //    screen.orientation.lock('portrait').catch(err => console.log(err));
+    // }
     return true;
 }
 
-/**
- * Main function to initialize the game.
- */
 async function main() {
     const allWords = await fetchWords(WORD_FILE);
 
     if (!allWords) {
-        infoText.textContent = `Error: Could not load word file '${WORD_FILE}'.`;
-        // Create a dummy file for the user to download if running locally
-        const sampleContent = "BATH\nALSO\nTEAR\nHORN\nCARS\nRATE\nENDS\nSEND\n";
-        const blob = new Blob([sampleContent], { type: 'text/plain' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'words4.txt';
-        link.textContent = 'Download sample words4.txt';
-        infoText.appendChild(document.createElement('br'));
-        infoText.appendChild(link);
+        infoText.innerHTML = `Error: Could not load word file '${WORD_FILE}'.`;
         return;
     }
 
     let solution = null;
-    // Try a few times to generate a puzzle
     for (let i = 0; i < 10; i++) {
         solution = generateCrossword(GRID_SIZE, allWords);
         if (solution) break;
@@ -309,12 +339,15 @@ async function main() {
         console.log("Puzzle Generated:", solution);
         solutionGrid = solution.rows;
         solutionCols = solution.cols;
-        infoText.textContent = 'Fill the grid. Use mouse, arrows, and letter keys.';
+        infoText.textContent = 'Fill the grid. Use keyboard or mouse.';
         createGrid();
+        setupOnScreenKeyboard();
+        document.addEventListener('keydown', handlePhysicalKeyDown);
+        // Focus the first cell to start
+        document.getElementById('cell-0-0').focus();
     } else {
-        infoText.textContent = `Could not generate a ${GRID_SIZE}x${GRID_SIZE} puzzle. Add more words to '${WORD_FILE}'.`;
+        infoText.textContent = `Could not generate a puzzle. Try adding more words to '${WORD_FILE}'.`;
     }
 }
 
-// Start the game when the page is loaded
 document.addEventListener('DOMContentLoaded', main);

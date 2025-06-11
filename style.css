@@ -13,6 +13,13 @@
     --color-present: #ffff99;  /* Light Yellow */
     --color-absent: #c8c8c8;    /* Gray */
     --color-highlight: #add8e6; /* Light Blue */
+    --color-key-bg: #818384;
+    --color-key-text: #ffffff;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden; /* Prevents bouncing on mobile */
 }
 
 body {
@@ -20,10 +27,12 @@ body {
     background-color: var(--color-bg);
     color: var(--color-text);
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    min-height: 100vh;
     margin: 0;
+    padding: 10px 0;
+    box-sizing: border-box;
 }
 
 #game-container {
@@ -41,6 +50,7 @@ body {
     grid-template-columns: repeat(var(--grid-size), var(--cell-size));
     grid-template-rows: repeat(var(--grid-size), var(--cell-size));
     border: 2px solid var(--color-border);
+    margin-bottom: 20px;
 }
 
 .cell {
@@ -49,7 +59,7 @@ body {
     border: 1px solid var(--color-border);
     background-color: var(--color-cell-bg);
     color: var(--color-cell-text);
-    font-size: 5rem;
+    font-size: 4rem; /* Adjusted for smaller cells on mobile */
     font-weight: bold;
     text-align: center;
     text-transform: uppercase;
@@ -57,30 +67,59 @@ body {
     box-sizing: border-box; /* Ensures padding/border are included in size */
 }
 
-/* Removes number input spinners in Chrome/Safari/Edge */
-.cell::-webkit-outer-spin-button,
-.cell::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-/* Removes number input spinners in Firefox */
-.cell[type=number] {
-  -moz-appearance: textfield;
-}
-
 .cell:focus {
     outline: 4px solid var(--color-highlight);
     z-index: 10;
 }
 
-/* Color feedback classes */
 .cell.correct { background-color: var(--color-correct); }
 .cell.present { background-color: var(--color-present); }
 .cell.absent  { background-color: var(--color-absent); }
 
+/* --- On-screen Keyboard --- */
+#keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 600px; /* Max keyboard width on large screens */
+    user-select: none; /* Prevents text selection on rapid clicks */
+}
 
-/* Win Overlay */
+.keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+#keyboard button {
+    font-family: inherit;
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 0;
+    margin: 0;
+    height: 58px;
+    flex: 1; /* Allow keys to grow */
+    max-width: 45px; /* But not too much */
+    border: 0;
+    border-radius: 4px;
+    background-color: var(--color-key-bg);
+    color: var(--color-key-text);
+    cursor: pointer;
+}
+
+#keyboard button.key-wide {
+    flex-grow: 1.5;
+    max-width: 75px;
+    font-size: 0.9rem;
+}
+
+#keyboard button:active {
+    background-color: #555;
+}
+
+
+/* --- Win Overlay --- */
 #win-overlay {
     position: fixed;
     top: 0;
@@ -93,19 +132,34 @@ body {
     align-items: center;
     z-index: 100;
 }
+#win-overlay.hidden { display: none; }
+#win-message { color: var(--color-correct); text-align: center; }
+#win-message h2 { font-size: 6rem; margin: 0; }
+#win-message p { font-size: 1.5rem; }
 
-#win-overlay.hidden {
-    display: none;
+/* --- Responsive Design for Mobile --- */
+@media (max-width: 600px) {
+    :root {
+        --cell-size: 75px; /* Smaller cells on mobile */
+    }
+    #game-container h1 {
+        font-size: 1.5rem;
+    }
+    .cell {
+        font-size: 3.5rem;
+    }
+    #keyboard button {
+        height: 50px;
+    }
 }
 
-#win-message {
-    color: var(--color-correct);
-    text-align: center;
-}
-#win-message h2 {
-    font-size: 6rem;
-    margin: 0;
-}
-#win-message p {
-    font-size: 1.5rem;
+@media (max-height: 700px) {
+     :root {
+        --cell-size: 60px;
+    }
+    .cell { font-size: 2.5rem; }
+    #keyboard button { height: 40px; font-size: 1rem; }
+    #keyboard button.key-wide { font-size: 0.8rem; }
+    #info-text { margin-bottom: 10px; }
+    #grid-container { margin-bottom: 10px; }
 }
