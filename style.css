@@ -9,9 +9,10 @@
     --color-cell-bg: #fff;
     --color-cell-text: #000;
     --color-border: #000;
-    --color-correct: #90ee90;   /* Light Green */
-    --color-present: #ffff99;  /* Light Yellow */
-    --color-absent: #c8c8c8;    /* Gray */
+    --color-correct: #538d4e;   /* Darker Green for better contrast */
+    --color-present: #b59f3b;  /* Darker Yellow */
+    --color-absent: #3a3a3c;    /* Dark Gray */
+    --color-key-used-text: #fff; /* Text color for used keys */
     --color-highlight: #add8e6; /* Light Blue */
     --color-key-bg: #818384;
     --color-key-text: #ffffff;
@@ -39,11 +40,42 @@ body {
     text-align: center;
 }
 
-#info-text {
-    height: 28px;
-    margin-bottom: var(--margin);
-    font-size: 1.1rem;
+/* MODIFIED: Replaced #info-text with a more structured container */
+#stats-container {
+    height: 60px; /* Increased height for new elements */
+    margin-bottom: 10px; /* Reduced margin */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
 }
+
+#info-text {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+#game-stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+#hint-button {
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--color-text);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+#hint-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 
 #grid-container {
     display: grid;
@@ -72,9 +104,10 @@ body {
     z-index: 10;
 }
 
-.cell.correct { background-color: var(--color-correct); }
-.cell.present { background-color: var(--color-present); }
-.cell.absent  { background-color: var(--color-absent); }
+.cell.correct { background-color: var(--color-correct); color: white;}
+.cell.present { background-color: var(--color-present); color: white;}
+.cell.absent  { background-color: var(--color-absent); color: white;}
+
 
 /* --- On-screen Keyboard --- */
 #keyboard {
@@ -106,6 +139,8 @@ body {
     background-color: var(--color-key-bg);
     color: var(--color-key-text);
     cursor: pointer;
+    /* ADDED: Smooth transition for color changes */
+    transition: background-color 0.2s ease-in-out;
 }
 
 #keyboard button.key-wide {
@@ -116,6 +151,20 @@ body {
 
 #keyboard button:active {
     background-color: #555;
+}
+
+/* ADDED: Classes for keyboard key colors */
+#keyboard button.correct {
+    background-color: var(--color-correct);
+    color: var(--color-key-used-text);
+}
+#keyboard button.present {
+    background-color: var(--color-present);
+    color: var(--color-key-used-text);
+}
+#keyboard button.absent {
+    background-color: var(--color-absent);
+    color: var(--color-key-used-text);
 }
 
 
@@ -136,6 +185,19 @@ body {
 #win-message { color: var(--color-correct); text-align: center; }
 #win-message h2 { font-size: 6rem; margin: 0; }
 #win-message p { font-size: 1.5rem; }
+
+/* ADDED: Style for play again button */
+#play-again-button {
+    margin-top: 20px;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--color-highlight);
+    color: var(--color-bg);
+}
 
 /* --- Responsive Design for Mobile --- */
 @media (max-width: 600px) {
@@ -160,6 +222,6 @@ body {
     .cell { font-size: 2.5rem; }
     #keyboard button { height: 40px; font-size: 1rem; }
     #keyboard button.key-wide { font-size: 0.8rem; }
-    #info-text { margin-bottom: 10px; }
+    #stats-container { margin-bottom: 5px; height: 50px; }
     #grid-container { margin-bottom: 10px; }
 }

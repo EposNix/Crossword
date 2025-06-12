@@ -1,19 +1,33 @@
 // --- Constants ---
 const GRID_SIZE = 4;
 const WORD_FILE = "words4.txt";
+const MAX_HINTS = 3; // --- ADDED ---
 
 // --- DOM Elements ---
 const infoText = document.getElementById('info-text');
 const gridContainer = document.getElementById('grid-container');
 const winOverlay = document.getElementById('win-overlay');
+// --- ADDED: New DOM elements ---
+const guessCountEl = document.getElementById('guess-count');
+const hintsRemainingEl = document.getElementById('hints-remaining');
+const hintButton = document.getElementById('hint-button');
+const playAgainButton = document.getElementById('play-again-button');
+const winGuessesEl = document.getElementById('win-guesses');
 
-// --- Game State ---
-let solutionGrid = null;
-let solutionCols = null;
-let gameOver = false;
+
+// --- Game State (MODIFIED: Refactored into a single object) ---
+let state = {
+    solutionGrid: null,
+    solutionCols: null,
+    gameOver: false,
+    guessCount: 0,
+    hintsRemaining: MAX_HINTS,
+    // --- ADDED: Keep track of letter statuses for keyboard coloring ---
+    letterStatus: {} // { 'A': 'correct', 'B': 'present', 'C': 'absent' }
+};
 
 // --- Puzzle Generation (Port of crossword2.py) ---
-// This section remains unchanged from the previous version.
+// This section remains unchanged.
 
 /**
  * Fetches words from a file, one word per line.
@@ -138,10 +152,7 @@ function createGrid() {
             cell.dataset.r = r;
             cell.dataset.c = c;
             
-            // CRITICAL: Prevent native keyboard on mobile
             cell.readOnly = true;
-
-            // Allow clicking to focus
             cell.addEventListener('click', (e) => e.target.focus());
 
             gridContainer.appendChild(cell);
@@ -154,11 +165,10 @@ function createGrid() {
  * @param {string} key The key pressed (e.g., "A", "DEL", "ENTER").
  */
 function handleVirtualKeyPress(key) {
-    if (gameOver) return;
+    if (state.gameOver) return;
 
     let activeCell = document.querySelector('.cell:focus');
     if (!activeCell) {
-        // If no cell is focused, focus the first one
         activeCell = document.getElementById('cell-0-0');
         activeCell.focus();
     }
@@ -170,29 +180,32 @@ function handleVirtualKeyPress(key) {
     if (key === 'DEL') {
         if (activeCell.value) {
             activeCell.value = '';
-            updateCellColor(activeCell);
+            updateCellAndKeyboard(activeCell); // MODIFIED
         } else {
             const prevCell = focusPrevCell(row, col);
             if (prevCell) {
                 prevCell.value = '';
-                updateCellColor(prevCell);
+                updateCellAndKeyboard(prevCell); // MODIFIED
             }
         }
     } else if (key === 'ENTER') {
-        // Move to the start of the next row, if it exists
         if (row < GRID_SIZE - 1) {
             document.getElementById(`cell-${row + 1}-0`).focus();
         }
     } else if (key.length === 1 && key.match(/[A-Z]/i)) {
         activeCell.value = key.toUpperCase();
-        updateCellColor(activeCell);
+        
+        // --- ADDED: Guess counter logic ---
+        state.guessCount++;
+        guessCountEl.textContent = state.guessCount;
+        
+        updateCellAndKeyboard(activeCell); // MODIFIED
         checkWin();
-        if (!gameOver) {
+        if (!state.gameOver) {
             focusNextCell(row, col);
         }
     }
 }
-
 
 /**
  * Sets up listeners for the on-screen keyboard.
@@ -200,7 +213,7 @@ function handleVirtualKeyPress(key) {
 function setupOnScreenKeyboard() {
     document.querySelectorAll('#keyboard button').forEach(button => {
         button.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); // Prevent button from taking focus from the grid
+            e.preventDefault();
             handleVirtualKeyPress(e.target.dataset.key);
         });
     });
@@ -210,7 +223,7 @@ function setupOnScreenKeyboard() {
  * Handles physical keyboard events (arrows, letters, backspace).
  */
 function handlePhysicalKeyDown(e) {
-    if (e.ctrlKey || e.metaKey) return; // Allow copy/paste etc.
+    if (e.ctrlKey || e.metaKey) return;
 
     let nextRow = -1;
     let nextCol = -1;
@@ -245,9 +258,9 @@ function handlePhysicalKeyDown(e) {
             if (e.key.length === 1 && e.key.match(/[a-z]/i)) {
                 handleVirtualKeyPress(e.key);
             }
-            return; // Do nothing for other keys
+            return;
     }
-    e.preventDefault(); // Prevent default browser actions for handled keys
+    e.preventDefault();
 }
 
 
@@ -281,6 +294,11 @@ function focusPrevCell(r, c) {
     return null;
 }
 
+// --- MODIFIED: Renamed and expanded to update keyboard too ---
+function updateCellAndKeyboard(cell) {
+    updateCellColor(cell);
+    updateKeyboardColors();
+}
 
 function updateCellColor(cell) {
     const { r, c } = cell.dataset;
@@ -289,39 +307,141 @@ function updateCellColor(cell) {
     cell.classList.remove('correct', 'present', 'absent');
     if (!playerLetter) return;
 
-    const correctLetter = solutionGrid[r][c];
-    const correctRowWord = solutionGrid[r];
-    const correctColWord = solutionCols[c];
+    const correctLetter = state.solutionGrid[r][c];
+    const correctRowWord = state.solutionGrid[r];
+    const correctColWord = state.solutionCols[c];
 
+    let status = 'absent';
     if (playerLetter === correctLetter) {
-        cell.classList.add('correct');
+        status = 'correct';
     } else if (correctRowWord.includes(playerLetter) || correctColWord.includes(playerLetter)) {
-        cell.classList.add('present');
-    } else {
-        cell.classList.add('absent');
+        status = 'present';
     }
+    cell.classList.add(status);
 }
+
+// --- ADDED: Wordle-style keyboard coloring ---
+function updateKeyboardColors() {
+    // Reset statuses
+    state.letterStatus = {};
+    const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for(const letter of allLetters) {
+        // Find all occurrences of this letter in the player's grid
+        const cellsWithLetter = document.querySelectorAll(`.cell`);
+        let bestStatus = null; // null -> 'absent' -> 'present' -> 'correct'
+        
+        cellsWithLetter.forEach(cell => {
+            if (cell.value === letter) {
+                const { r, c } = cell.dataset;
+                const correctLetter = state.solutionGrid[r][c];
+                const correctRowWord = state.solutionGrid[r];
+                const correctColWord = state.solutionCols[c];
+                
+                let currentStatus = 'absent';
+                if (letter === correctLetter) {
+                    currentStatus = 'correct';
+                } else if (correctRowWord.includes(letter) || correctColWord.includes(letter)) {
+                    currentStatus = 'present';
+                }
+
+                // Upgrade status: correct > present > absent
+                if (currentStatus === 'correct') {
+                    bestStatus = 'correct';
+                } else if (currentStatus === 'present' && bestStatus !== 'correct') {
+                    bestStatus = 'present';
+                } else if (currentStatus === 'absent' && !bestStatus) {
+                    bestStatus = 'absent';
+                }
+            }
+        });
+
+        if (bestStatus) {
+             state.letterStatus[letter] = bestStatus;
+        }
+    }
+
+    // Apply classes to keyboard
+    document.querySelectorAll('#keyboard button').forEach(button => {
+        const key = button.dataset.key;
+        if (key && key.length === 1) {
+            button.classList.remove('correct', 'present', 'absent');
+            if (state.letterStatus[key]) {
+                button.classList.add(state.letterStatus[key]);
+            }
+        }
+    });
+}
+
 
 function checkWin() {
     for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
             const cell = document.getElementById(`cell-${r}-${c}`);
-            if (cell.value !== solutionGrid[r][c]) {
+            if (cell.value !== state.solutionGrid[r][c]) {
                 return false;
             }
         }
     }
-    gameOver = true;
+    state.gameOver = true;
     infoText.textContent = 'Puzzle Solved! Well Done!';
+    winGuessesEl.textContent = state.guessCount; // Update final guess count
     winOverlay.classList.remove('hidden');
-    // Optional: Lock orientation to portrait as a celebratory action or visual cue
-    // if (screen.orientation && screen.orientation.lock) {
-    //    screen.orientation.lock('portrait').catch(err => console.log(err));
-    // }
     return true;
 }
 
-async function main() {
+// --- ADDED: Hint logic ---
+function giveHint() {
+    if (state.hintsRemaining <= 0 || state.gameOver) return;
+
+    const incorrectCells = [];
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            if (cell.value !== state.solutionGrid[r][c]) {
+                incorrectCells.push(cell);
+            }
+        }
+    }
+
+    if (incorrectCells.length === 0) return; // Already solved
+
+    // Pick a random incorrect cell
+    const randomCell = incorrectCells[Math.floor(Math.random() * incorrectCells.length)];
+    const { r, c } = randomCell.dataset;
+    
+    randomCell.value = state.solutionGrid[r][c];
+    randomCell.focus(); // Focus the cell that was revealed
+
+    updateCellAndKeyboard(randomCell);
+
+    state.hintsRemaining--;
+    hintsRemainingEl.textContent = state.hintsRemaining;
+    if (state.hintsRemaining === 0) {
+        hintButton.disabled = true;
+    }
+
+    checkWin();
+}
+
+async function initGame() {
+    // Reset state
+    state = {
+        solutionGrid: null,
+        solutionCols: null,
+        gameOver: false,
+        guessCount: 0,
+        hintsRemaining: MAX_HINTS,
+        letterStatus: {}
+    };
+
+    // Reset UI
+    infoText.textContent = 'Generating new puzzle...';
+    winOverlay.classList.add('hidden');
+    guessCountEl.textContent = '0';
+    hintsRemainingEl.textContent = MAX_HINTS;
+    hintButton.disabled = false;
+    document.querySelectorAll('#keyboard button').forEach(b => b.classList.remove('correct', 'present', 'absent'));
+
     const allWords = await fetchWords(WORD_FILE);
 
     if (!allWords) {
@@ -337,17 +457,21 @@ async function main() {
 
     if (solution) {
         console.log("Puzzle Generated:", solution);
-        solutionGrid = solution.rows;
-        solutionCols = solution.cols;
-        infoText.textContent = 'Fill the grid. Use keyboard or mouse.';
+        state.solutionGrid = solution.rows;
+        state.solutionCols = solution.cols;
+        infoText.textContent = 'Fill the grid. Good luck!';
         createGrid();
-        setupOnScreenKeyboard();
-        document.addEventListener('keydown', handlePhysicalKeyDown);
-        // Focus the first cell to start
         document.getElementById('cell-0-0').focus();
     } else {
-        infoText.textContent = `Could not generate a puzzle. Try adding more words to '${WORD_FILE}'.`;
+        infoText.textContent = `Could not generate a puzzle. Try refreshing.`;
     }
 }
 
-document.addEventListener('DOMContentLoaded', main);
+// --- MODIFIED: main function renamed to initGame and listeners moved outside ---
+document.addEventListener('DOMContentLoaded', () => {
+    setupOnScreenKeyboard();
+    document.addEventListener('keydown', handlePhysicalKeyDown);
+    hintButton.addEventListener('click', giveHint);
+    playAgainButton.addEventListener('click', initGame);
+    initGame();
+});

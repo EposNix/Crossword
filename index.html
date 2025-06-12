@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <!-- MODIFIED: Added maximum-scale=1 to prevent iOS zoom on input focus -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
     <title>HTML Crossword</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -10,11 +11,19 @@
 
     <div id="game-container">
         <h1>Crossword</h1>
-        <p id="info-text">Generating puzzle...</p>
+        <div id="stats-container"> <!-- ADDED: Container for stats -->
+             <p id="info-text">Generating puzzle...</p>
+             <!-- ADDED: Elements for guess count and hints -->
+             <div id="game-stats">
+                <span>Guesses: <strong id="guess-count">0</strong></span>
+                <button id="hint-button">Hint (<span id="hints-remaining">3</span>)</button>
+             </div>
+        </div>
         <div id="grid-container"></div>
     </div>
 
     <div id="keyboard">
+        <!-- Keyboard rows remain the same -->
         <div class="keyboard-row">
             <button data-key="Q">Q</button>
             <button data-key="W">W</button>
@@ -54,7 +63,9 @@
     <div id="win-overlay" class="hidden">
         <div id="win-message">
             <h2>YOU WIN!</h2>
-            <p>Congratulations!</p>
+            <p>You solved it in <strong id="win-guesses">0</strong> guesses!</p>
+            <!-- ADDED: Play again button -->
+            <button id="play-again-button">Play Again</button>
         </div>
     </div>
 
