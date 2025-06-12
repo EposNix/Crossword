@@ -1,18 +1,25 @@
 // --- Constants ---
 const GRID_SIZE = 4;
 const WORD_FILE = "words4.txt";
-const MAX_HINTS = 3; // --- ADDED ---
+const MAX_HINTS = 3; 
 
 // --- DOM Elements ---
 const infoText = document.getElementById('info-text');
 const gridContainer = document.getElementById('grid-container');
 const winOverlay = document.getElementById('win-overlay');
-// --- ADDED: New DOM elements ---
 const guessCountEl = document.getElementById('guess-count');
 const hintsRemainingEl = document.getElementById('hints-remaining');
 const hintButton = document.getElementById('hint-button');
 const playAgainButton = document.getElementById('play-again-button');
 const winGuessesEl = document.getElementById('win-guesses');
+
+// --- ADDED: New Modal/Splash Screen DOM Elements ---
+const splashOverlay = document.getElementById('splash-overlay');
+const startGameButton = document.getElementById('start-game-button');
+const helpOverlay = document.getElementById('help-overlay');
+const helpButton = document.getElementById('help-button');
+const closeHelpButton = document.getElementById('close-help-button');
+const closeHelpButtonBottom = document.getElementById('close-help-button-bottom');
 
 
 // --- Game State (MODIFIED: Refactored into a single object) ---
@@ -22,18 +29,12 @@ let state = {
     gameOver: false,
     guessCount: 0,
     hintsRemaining: MAX_HINTS,
-    // --- ADDED: Keep track of letter statuses for keyboard coloring ---
     letterStatus: {} // { 'A': 'correct', 'B': 'present', 'C': 'absent' }
 };
 
 // --- Puzzle Generation (Port of crossword2.py) ---
 // This section remains unchanged.
 
-/**
- * Fetches words from a file, one word per line.
- * @param {string} filename The path to the word file.
- * @returns {Promise<string[]>} A promise that resolves to a list of uppercase words.
- */
 async function fetchWords(filename) {
     try {
         const response = await fetch(filename);
@@ -48,12 +49,6 @@ async function fetchWords(filename) {
     }
 }
 
-/**
- * Builds a set of all prefixes for words of a specific length.
- * @param {string[]} words The list of all words.
- * @param {number} n The required length of words.
- * @returns {Set<string>} A set of all valid prefixes.
- */
 function buildPrefixSet(words, n) {
     const prefixes = new Set();
     for (const w of words) {
@@ -65,15 +60,8 @@ function buildPrefixSet(words, n) {
     return prefixes;
 }
 
-/**
- * Tries to generate an n x n crossword puzzle using backtracking.
- * @param {number} n Grid size.
- * @param {string[]} words List of candidate words.
- * @returns {{rows: string[], cols: string[]} | null} A solution object or null if not found.
- */
 function generateCrossword(n, words) {
     const wordList = words.filter(w => w.length === n);
-    // Fisher-Yates shuffle
     for (let i = wordList.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [wordList[i], wordList[j]] = [wordList[j], wordList[i]];
@@ -84,7 +72,7 @@ function generateCrossword(n, words) {
     const currentRows = [];
 
     function backtrack() {
-        if (solutions.length > 0) return true; // Stop after one solution
+        if (solutions.length > 0) return true;
 
         if (currentRows.length === n) {
             const cols = [];
@@ -103,7 +91,7 @@ function generateCrossword(n, words) {
             return true;
         }
 
-        const k = currentRows.length; // Next row index
+        const k = currentRows.length;
         for (const word of wordList) {
             if (currentRows.includes(word)) continue;
 
@@ -135,9 +123,6 @@ function generateCrossword(n, words) {
 
 // --- Game Logic & DOM Manipulation ---
 
-/**
- * Sets up the grid in the DOM with input cells.
- */
 function createGrid() {
     gridContainer.innerHTML = '';
     gridContainer.style.setProperty('--grid-size', GRID_SIZE);
@@ -160,17 +145,12 @@ function createGrid() {
     }
 }
 
-/**
- * Centralized handler for both physical and virtual keyboard presses.
- * @param {string} key The key pressed (e.g., "A", "DEL", "ENTER").
- */
 function handleVirtualKeyPress(key) {
     if (state.gameOver) return;
 
     let activeCell = document.querySelector('.cell:focus');
     if (!activeCell) {
-        activeCell = document.getElementById('cell-0-0');
-        activeCell.focus();
+       return; // Don't allow typing if no cell is focused (e.g., before game starts)
     }
     
     const { r, c } = activeCell.dataset;
@@ -180,12 +160,12 @@ function handleVirtualKeyPress(key) {
     if (key === 'DEL') {
         if (activeCell.value) {
             activeCell.value = '';
-            updateCellAndKeyboard(activeCell); // MODIFIED
+            updateCellAndKeyboard(activeCell);
         } else {
             const prevCell = focusPrevCell(row, col);
             if (prevCell) {
                 prevCell.value = '';
-                updateCellAndKeyboard(prevCell); // MODIFIED
+                updateCellAndKeyboard(prevCell);
             }
         }
     } else if (key === 'ENTER') {
@@ -195,11 +175,10 @@ function handleVirtualKeyPress(key) {
     } else if (key.length === 1 && key.match(/[A-Z]/i)) {
         activeCell.value = key.toUpperCase();
         
-        // --- ADDED: Guess counter logic ---
         state.guessCount++;
         guessCountEl.textContent = state.guessCount;
         
-        updateCellAndKeyboard(activeCell); // MODIFIED
+        updateCellAndKeyboard(activeCell);
         checkWin();
         if (!state.gameOver) {
             focusNextCell(row, col);
@@ -207,9 +186,6 @@ function handleVirtualKeyPress(key) {
     }
 }
 
-/**
- * Sets up listeners for the on-screen keyboard.
- */
 function setupOnScreenKeyboard() {
     document.querySelectorAll('#keyboard button').forEach(button => {
         button.addEventListener('pointerdown', (e) => {
@@ -219,11 +195,13 @@ function setupOnScreenKeyboard() {
     });
 }
 
-/**
- * Handles physical keyboard events (arrows, letters, backspace).
- */
 function handlePhysicalKeyDown(e) {
     if (e.ctrlKey || e.metaKey) return;
+    
+    // Don't handle keydown if a modal is open
+    if (!splashOverlay.classList.contains('hidden') || !helpOverlay.classList.contains('hidden')) {
+        return;
+    }
 
     let nextRow = -1;
     let nextCol = -1;
@@ -233,6 +211,8 @@ function handlePhysicalKeyDown(e) {
         const {r, c} = activeCell.dataset;
         nextRow = parseInt(r);
         nextCol = parseInt(c);
+    } else {
+        return; // No active cell, don't process keys
     }
 
     switch (e.key) {
@@ -294,7 +274,6 @@ function focusPrevCell(r, c) {
     return null;
 }
 
-// --- MODIFIED: Renamed and expanded to update keyboard too ---
 function updateCellAndKeyboard(cell) {
     updateCellColor(cell);
     updateKeyboardColors();
@@ -320,9 +299,7 @@ function updateCellColor(cell) {
     cell.classList.add(status);
 }
 
-// --- MODIFIED: Keyboard coloring based on global solution state ---
 function updateKeyboardColors() {
-    // 1. Count total occurrences of each letter in the solution.
     const solutionLetterCounts = {};
     if (state.solutionGrid) {
         for (const row of state.solutionGrid) {
@@ -332,7 +309,6 @@ function updateKeyboardColors() {
         }
     }
 
-    // 2. Count correctly placed letters and get all unique letters the player has typed.
     const playerCorrectCounts = {};
     const playerUsedLetters = new Set();
     const allPlayerCells = document.querySelectorAll('.cell');
@@ -348,36 +324,28 @@ function updateKeyboardColors() {
         }
     });
     
-    // 3. Determine the status for each letter based on the current grid state,
-    // creating a new status object for this turn.
     const currentLetterStatus = {};
     const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for (const letter of allLetters) {
-        // If a letter was already marked 'absent', that status is permanent.
         if (state.letterStatus[letter] === 'absent') {
             currentLetterStatus[letter] = 'absent';
             continue;
         }
 
-        // Only calculate status for letters the player has actually used.
         if (playerUsedLetters.has(letter)) {
             const totalInSolution = solutionLetterCounts[letter] || 0;
             const correctlyPlaced = playerCorrectCounts[letter] || 0;
 
             if (totalInSolution === 0) {
-                // Gray: The letter is not in the solution at all. Becomes permanent.
                 currentLetterStatus[letter] = 'absent';
             } else if (correctlyPlaced === totalInSolution) {
-                // Green: All instances of this letter have been correctly placed.
                 currentLetterStatus[letter] = 'correct';
             } else {
-                // Yellow: The letter is in the solution, but not all instances are correct yet.
                 currentLetterStatus[letter] = 'present';
             }
         }
     }
 
-    // 4. Update the global state and apply classes to the keyboard.
     state.letterStatus = currentLetterStatus;
 
     document.querySelectorAll('#keyboard button').forEach(button => {
@@ -403,12 +371,11 @@ function checkWin() {
     }
     state.gameOver = true;
     infoText.textContent = 'Puzzle Solved! Well Done!';
-    winGuessesEl.textContent = state.guessCount; // Update final guess count
+    winGuessesEl.textContent = state.guessCount; 
     winOverlay.classList.remove('hidden');
     return true;
 }
 
-// --- ADDED: Hint logic ---
 function giveHint() {
     if (state.hintsRemaining <= 0 || state.gameOver) return;
 
@@ -422,14 +389,13 @@ function giveHint() {
         }
     }
 
-    if (incorrectCells.length === 0) return; // Already solved
+    if (incorrectCells.length === 0) return;
 
-    // Pick a random incorrect cell
     const randomCell = incorrectCells[Math.floor(Math.random() * incorrectCells.length)];
     const { r, c } = randomCell.dataset;
     
     randomCell.value = state.solutionGrid[r][c];
-    randomCell.focus(); // Focus the cell that was revealed
+    randomCell.focus();
 
     updateCellAndKeyboard(randomCell);
 
@@ -455,6 +421,7 @@ async function initGame() {
 
     // Reset UI
     infoText.textContent = 'Generating new puzzle...';
+    gridContainer.innerHTML = '<!-- Generating... -->'; // Clear grid
     winOverlay.classList.add('hidden');
     guessCountEl.textContent = '0';
     hintsRemainingEl.textContent = MAX_HINTS;
@@ -480,17 +447,44 @@ async function initGame() {
         state.solutionCols = solution.cols;
         infoText.textContent = 'Fill the grid. Good luck!';
         createGrid();
-        document.getElementById('cell-0-0').focus();
+        // Focus the first cell to enable keyboard input immediately
+        const firstCell = document.getElementById('cell-0-0');
+        if (firstCell) {
+            firstCell.focus();
+        }
     } else {
         infoText.textContent = `Could not generate a puzzle. Try refreshing.`;
     }
 }
 
-// --- MODIFIED: main function renamed to initGame and listeners moved outside ---
+
+// --- Main Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
     setupOnScreenKeyboard();
     document.addEventListener('keydown', handlePhysicalKeyDown);
+    
+    // --- Splash Screen and Game Start ---
+    startGameButton.addEventListener('click', () => {
+        splashOverlay.classList.add('hidden');
+        initGame(); // The game only starts when the button is clicked
+    });
+
+    // --- Help Modal Listeners ---
+    helpButton.addEventListener('click', () => {
+        helpOverlay.classList.remove('hidden');
+    });
+
+    const closeHelp = () => helpOverlay.classList.add('hidden');
+    closeHelpButton.addEventListener('click', closeHelp);
+    closeHelpButtonBottom.addEventListener('click', closeHelp);
+    helpOverlay.addEventListener('click', (e) => {
+        // Close if the user clicks the dark background, not the content box
+        if (e.target === helpOverlay) {
+            closeHelp();
+        }
+    });
+
+    // --- Other Game Listeners ---
     hintButton.addEventListener('click', giveHint);
     playAgainButton.addEventListener('click', initGame);
-    initGame();
 });

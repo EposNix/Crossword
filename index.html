@@ -11,12 +11,13 @@
 
     <div id="game-container">
         <h1>Crossword</h1>
-        <div id="stats-container"> <!-- ADDED: Container for stats -->
-             <p id="info-text">Generating puzzle...</p>
-             <!-- ADDED: Elements for guess count and hints -->
+        <div id="stats-container">
+             <p id="info-text"></p> <!-- MODIFIED: Text will be set by JS -->
              <div id="game-stats">
                 <span>Guesses: <strong id="guess-count">0</strong></span>
                 <button id="hint-button">Hint (<span id="hints-remaining">3</span>)</button>
+                <!-- ADDED: Help button -->
+                <button id="help-button" title="How to Play">?</button>
              </div>
         </div>
         <div id="grid-container"></div>
@@ -60,11 +61,60 @@
         </div>
     </div>
 
+    <!-- ADDED: Splash screen overlay -->
+    <div id="splash-overlay">
+        <div id="splash-content">
+            <h2>How to Play</h2>
+            <p>Your goal is to fill the grid so every row and column is a valid word. The colors are your clues!</p>
+            
+            <h3>Grid Cell Colors (Row & Column Clues)</h3>
+            <ul>
+                <li>🟩 <strong>Green:</strong> Correct letter, correct spot.</li>
+                <li>🟨 <strong>Yellow:</strong> Letter is in this row OR column, but wrong spot.</li>
+                <li>⬛ <strong>Gray:</strong> Letter is not in this row or column.</li>
+            </ul>
+
+            <h3>Keyboard Key Colors (Whole Puzzle Clues)</h3>
+            <ul>
+                <li>🟩 <strong>Green:</strong> You've found all of this letter in the puzzle!</li>
+                <li>🟨 <strong>Yellow:</strong> This letter exists in the puzzle, but you haven't found all of its locations yet.</li>
+                <li>⬛ <strong>Gray:</strong> This letter is not in the puzzle at all.</li>
+            </ul>
+            <button id="start-game-button">Start Game</button>
+        </div>
+    </div>
+
+    <!-- ADDED: Help modal overlay -->
+    <div id="help-overlay" class="hidden">
+        <div id="help-content">
+            <button id="close-help-button">×</button>
+            <h2>How to Play: HTML Crossword</h2>
+            <p>The objective is to fill the 4x4 grid with letters, creating four valid 4-letter words across and four down.</p>
+            
+            <h3>1. Grid Cell Colors: Your Local Clues</h3>
+            <p>The color of a letter <em>in the grid</em> tells you about its relationship to the specific <strong>row and column</strong> it's in.</p>
+            <ul>
+                <li><span class="text-correct"><strong>GREEN</strong></span>: Perfect! This letter is in the correct spot.</li>
+                <li><span class="text-present"><strong>YELLOW</strong></span>: Close! This letter exists in the current row OR the current column, but it's in the wrong position.</li>
+                <li><span class="text-absent"><strong>GRAY</strong></span>: Wrong. This letter does not appear anywhere in the current row or column.</li>
+            </ul>
+
+            <h3>2. Keyboard Key Colors: Your Global Clues</h3>
+            <p>The color of a key <em>on your keyboard</em> gives you information about that letter's status across the <strong>entire puzzle</strong>.</p>
+            <ul>
+                <li><span class="text-correct"><strong>GREEN</strong></span>: All Found! You have correctly placed every single instance of this letter in the puzzle.</li>
+                <li><span class="text-present"><strong>YELLOW</strong></span>: It's In Here! This letter is part of the solution, but you haven't found all of its correct locations yet.</li>
+                <li><span class="text-absent"><strong>GRAY</strong></span>: Not in Puzzle. This letter does not appear anywhere in the final solution.</li>
+            </ul>
+             <button id="close-help-button-bottom">Close</button>
+        </div>
+    </div>
+
+
     <div id="win-overlay" class="hidden">
         <div id="win-message">
             <h2>YOU WIN!</h2>
             <p>You solved it in <strong id="win-guesses">0</strong> guesses!</p>
-            <!-- ADDED: Play again button -->
             <button id="play-again-button">Play Again</button>
         </div>
     </div>
