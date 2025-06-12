@@ -324,43 +324,44 @@ function updateCellColor(cell) {
 function updateKeyboardColors() {
     // Reset statuses
     state.letterStatus = {};
-    const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    for(const letter of allLetters) {
-        // Find all occurrences of this letter in the player's grid
-        const cellsWithLetter = document.querySelectorAll(`.cell`);
-        let bestStatus = null; // null -> 'absent' -> 'present' -> 'correct'
-        
-        cellsWithLetter.forEach(cell => {
-            if (cell.value === letter) {
-                const { r, c } = cell.dataset;
-                const correctLetter = state.solutionGrid[r][c];
-                const correctRowWord = state.solutionGrid[r];
-                const correctColWord = state.solutionCols[c];
-                
-                let currentStatus = 'absent';
-                if (letter === correctLetter) {
-                    currentStatus = 'correct';
-                } else if (correctRowWord.includes(letter) || correctColWord.includes(letter)) {
-                    currentStatus = 'present';
-                }
 
-                // Upgrade status: correct > present > absent
-                if (currentStatus === 'correct') {
-                    bestStatus = 'correct';
-                } else if (currentStatus === 'present' && bestStatus !== 'correct') {
-                    bestStatus = 'present';
-                } else if (currentStatus === 'absent' && !bestStatus) {
-                    bestStatus = 'absent';
-                }
-            }
-        });
-
-        if (bestStatus) {
-             state.letterStatus[letter] = bestStatus;
+    /* -------- Totals for each letter in the solution grid -------- */
+    const totalInSolution = {};
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            const letter = state.solutionGrid[r][c];
+            totalInSolution[letter] = (totalInSolution[letter] || 0) + 1;
         }
     }
 
-    // Apply classes to keyboard
+    /* -------- Counts typed by the player -------- */
+    const typedCounts   = {};
+    const correctCounts = {};
+
+    document.querySelectorAll('.cell').forEach(cell => {
+        if (!cell.value) return;
+
+        const letter = cell.value;
+        typedCounts[letter] = (typedCounts[letter] || 0) + 1;
+
+        const { r, c } = cell.dataset;
+        if (letter === state.solutionGrid[r][c]) {
+            correctCounts[letter] = (correctCounts[letter] || 0) + 1;
+        }
+    });
+
+    /* -------- Determine status for each typed letter -------- */
+    for (const letter of Object.keys(typedCounts)) {
+        if (!totalInSolution[letter]) {
+            state.letterStatus[letter] = 'absent';        // Not in solution at all
+        } else if ((correctCounts[letter] || 0) >= totalInSolution[letter]) {
+            state.letterStatus[letter] = 'correct';       // All occurrences solved
+        } else {
+            state.letterStatus[letter] = 'present';       // Some occurrences still hidden
+        }
+    }
+
+    /* -------- Apply classes to keyboard buttons -------- */
     document.querySelectorAll('#keyboard button').forEach(button => {
         const key = button.dataset.key;
         if (key && key.length === 1) {
