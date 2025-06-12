@@ -320,48 +320,66 @@ function updateCellColor(cell) {
     cell.classList.add(status);
 }
 
-// --- ADDED: Wordle-style keyboard coloring ---
+// --- MODIFIED: Keyboard coloring based on global solution state ---
 function updateKeyboardColors() {
-    // Reset statuses
-    state.letterStatus = {};
-
-    /* -------- Totals for each letter in the solution grid -------- */
-    const totalInSolution = {};
-    for (let r = 0; r < GRID_SIZE; r++) {
-        for (let c = 0; c < GRID_SIZE; c++) {
-            const letter = state.solutionGrid[r][c];
-            totalInSolution[letter] = (totalInSolution[letter] || 0) + 1;
+    // 1. Count total occurrences of each letter in the solution.
+    const solutionLetterCounts = {};
+    if (state.solutionGrid) {
+        for (const row of state.solutionGrid) {
+            for (const letter of row) {
+                solutionLetterCounts[letter] = (solutionLetterCounts[letter] || 0) + 1;
+            }
         }
     }
 
-    /* -------- Counts typed by the player -------- */
-    const typedCounts   = {};
-    const correctCounts = {};
+    // 2. Count correctly placed letters and get all unique letters the player has typed.
+    const playerCorrectCounts = {};
+    const playerUsedLetters = new Set();
+    const allPlayerCells = document.querySelectorAll('.cell');
+    allPlayerCells.forEach(cell => {
+        const playerLetter = cell.value;
+        if (!playerLetter) return;
 
-    document.querySelectorAll('.cell').forEach(cell => {
-        if (!cell.value) return;
-
-        const letter = cell.value;
-        typedCounts[letter] = (typedCounts[letter] || 0) + 1;
+        playerUsedLetters.add(playerLetter);
 
         const { r, c } = cell.dataset;
-        if (letter === state.solutionGrid[r][c]) {
-            correctCounts[letter] = (correctCounts[letter] || 0) + 1;
+        if (playerLetter === state.solutionGrid[r][c]) {
+            playerCorrectCounts[playerLetter] = (playerCorrectCounts[playerLetter] || 0) + 1;
         }
     });
+    
+    // 3. Determine the status for each letter based on the current grid state,
+    // creating a new status object for this turn.
+    const currentLetterStatus = {};
+    const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (const letter of allLetters) {
+        // If a letter was already marked 'absent', that status is permanent.
+        if (state.letterStatus[letter] === 'absent') {
+            currentLetterStatus[letter] = 'absent';
+            continue;
+        }
 
-    /* -------- Determine status for each typed letter -------- */
-    for (const letter of Object.keys(typedCounts)) {
-        if (!totalInSolution[letter]) {
-            state.letterStatus[letter] = 'absent';        // Not in solution at all
-        } else if ((correctCounts[letter] || 0) >= totalInSolution[letter]) {
-            state.letterStatus[letter] = 'correct';       // All occurrences solved
-        } else {
-            state.letterStatus[letter] = 'present';       // Some occurrences still hidden
+        // Only calculate status for letters the player has actually used.
+        if (playerUsedLetters.has(letter)) {
+            const totalInSolution = solutionLetterCounts[letter] || 0;
+            const correctlyPlaced = playerCorrectCounts[letter] || 0;
+
+            if (totalInSolution === 0) {
+                // Gray: The letter is not in the solution at all. Becomes permanent.
+                currentLetterStatus[letter] = 'absent';
+            } else if (correctlyPlaced === totalInSolution) {
+                // Green: All instances of this letter have been correctly placed.
+                currentLetterStatus[letter] = 'correct';
+            } else {
+                // Yellow: The letter is in the solution, but not all instances are correct yet.
+                currentLetterStatus[letter] = 'present';
+            }
         }
     }
 
-    /* -------- Apply classes to keyboard buttons -------- */
+    // 4. Update the global state and apply classes to the keyboard.
+    state.letterStatus = currentLetterStatus;
+
     document.querySelectorAll('#keyboard button').forEach(button => {
         const key = button.dataset.key;
         if (key && key.length === 1) {
