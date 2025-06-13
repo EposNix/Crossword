@@ -13,13 +13,14 @@ const hintButton = document.getElementById('hint-button');
 const playAgainButton = document.getElementById('play-again-button');
 const winGuessesEl = document.getElementById('win-guesses');
 
-// --- ADDED: New Modal/Splash Screen DOM Elements ---
+// --- ADDED: New Modal/Splash/Share Screen DOM Elements ---
 const splashOverlay = document.getElementById('splash-overlay');
 const startGameButton = document.getElementById('start-game-button');
 const helpOverlay = document.getElementById('help-overlay');
 const helpButton = document.getElementById('help-button');
 const closeHelpButton = document.getElementById('close-help-button');
 const closeHelpButtonBottom = document.getElementById('close-help-button-bottom');
+const shareButton = document.getElementById('share-button'); // ADDED
 
 
 // --- Game State (MODIFIED: Refactored into a single object) ---
@@ -139,6 +140,11 @@ function createGrid() {
             
             cell.readOnly = true;
             cell.addEventListener('click', (e) => e.target.focus());
+            
+            // MODIFIED: Add listener to remove animation class after it plays
+            cell.addEventListener('animationend', () => {
+                cell.classList.remove('animate-jump', 'animate-shake', 'animate-wobble');
+            });
 
             gridContainer.appendChild(cell);
         }
@@ -150,20 +156,24 @@ function handleVirtualKeyPress(key) {
 
     let activeCell = document.querySelector('.cell:focus');
     if (!activeCell) {
-       return; // Don't allow typing if no cell is focused (e.g., before game starts)
+       return; // Don't allow typing if no cell is focused
     }
     
     const { r, c } = activeCell.dataset;
     const row = parseInt(r);
     const col = parseInt(c);
 
+    // MODIFIED: Logic for handling locked (correct) cells and backspace
     if (key === 'DEL') {
-        if (activeCell.value) {
+        // If the current cell has a value AND isn't locked, delete it.
+        if (activeCell.value && !activeCell.classList.contains('correct')) {
             activeCell.value = '';
             updateCellAndKeyboard(activeCell);
-        } else {
+        // If the current cell is empty...
+        } else if (!activeCell.value) { 
             const prevCell = focusPrevCell(row, col);
-            if (prevCell) {
+            // If we found a previous cell AND it's not locked, delete its content.
+            if (prevCell && !prevCell.classList.contains('correct')) {
                 prevCell.value = '';
                 updateCellAndKeyboard(prevCell);
             }
@@ -173,6 +183,10 @@ function handleVirtualKeyPress(key) {
             document.getElementById(`cell-${row + 1}-0`).focus();
         }
     } else if (key.length === 1 && key.match(/[A-Z]/i)) {
+        // MODIFIED: Prevent typing over a correct cell
+        if (activeCell.classList.contains('correct')) {
+            return;
+        }
         activeCell.value = key.toUpperCase();
         
         state.guessCount++;
@@ -180,9 +194,10 @@ function handleVirtualKeyPress(key) {
         
         updateCellAndKeyboard(activeCell);
         checkWin();
-        if (!state.gameOver) {
-            focusNextCell(row, col);
-        }
+        // REMOVED: No longer automatically advance to the next cell
+        // if (!state.gameOver) {
+        //     focusNextCell(row, col);
+        // }
     }
 }
 
@@ -284,6 +299,9 @@ function updateCellColor(cell) {
     const playerLetter = cell.value;
 
     cell.classList.remove('correct', 'present', 'absent');
+    // MODIFIED: Remove any existing animation classes before adding a new one
+    cell.classList.remove('animate-jump', 'animate-shake', 'animate-wobble');
+
     if (!playerLetter) return;
 
     const correctLetter = state.solutionGrid[r][c];
@@ -291,12 +309,22 @@ function updateCellColor(cell) {
     const correctColWord = state.solutionCols[c];
 
     let status = 'absent';
+    let animationClass = 'animate-shake'; // Default animation for a guess
+
     if (playerLetter === correctLetter) {
         status = 'correct';
+        animationClass = 'animate-jump';
     } else if (correctRowWord.includes(playerLetter) || correctColWord.includes(playerLetter)) {
         status = 'present';
+        animationClass = 'animate-wobble';
     }
+
     cell.classList.add(status);
+    
+    // Trigger reflow to allow re-animation of the same type
+    void cell.offsetWidth; 
+    
+    cell.classList.add(animationClass);
 }
 
 function updateKeyboardColors() {
@@ -383,6 +411,7 @@ function giveHint() {
     for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
             const cell = document.getElementById(`cell-${r}-${c}`);
+            // MODIFIED: A hint can also be used on an empty cell, not just an incorrect one
             if (cell.value !== state.solutionGrid[r][c]) {
                 incorrectCells.push(cell);
             }
@@ -478,10 +507,27 @@ document.addEventListener('DOMContentLoaded', () => {
     closeHelpButton.addEventListener('click', closeHelp);
     closeHelpButtonBottom.addEventListener('click', closeHelp);
     helpOverlay.addEventListener('click', (e) => {
-        // Close if the user clicks the dark background, not the content box
         if (e.target === helpOverlay) {
             closeHelp();
         }
+    });
+    
+    // --- ADDED: Share Button Listener ---
+    shareButton.addEventListener('click', () => {
+        const shareText = `I solved the HTML Crossword in ${state.guessCount} guesses! 🧩\n\nTry it yourself!`;
+        
+        navigator.clipboard.writeText(shareText).then(() => {
+            const originalText = shareButton.textContent;
+            shareButton.textContent = 'Copied!';
+            shareButton.disabled = true;
+            setTimeout(() => {
+                shareButton.textContent = originalText;
+                shareButton.disabled = false;
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            alert("Could not copy text to clipboard.");
+        });
     });
 
     // --- Other Game Listeners ---

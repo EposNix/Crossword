@@ -108,6 +108,7 @@ body {
     text-transform: uppercase;
     caret-color: transparent;
     box-sizing: border-box;
+    position: relative;
 }
 
 .cell:focus {
@@ -118,6 +119,27 @@ body {
 .cell.correct { background-color: var(--color-correct); color: white;}
 .cell.present { background-color: var(--color-present); color: white;}
 .cell.absent  { background-color: var(--color-absent); color: white;}
+
+/* ADDED: Cell animation classes and keyframes */
+.cell.animate-jump { animation: jump 0.5s ease; }
+@keyframes jump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px) scale(1.1); }
+}
+
+.cell.animate-shake { animation: shake 0.5s ease; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.cell.animate-wobble { animation: wobble 0.5s ease; }
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+}
 
 
 /* --- On-screen Keyboard --- */
@@ -226,20 +248,34 @@ body {
 .text-present { color: var(--color-present); }
 .text-absent  { color: var(--color-absent); font-style: italic; }
 
-
-#play-again-button, #start-game-button, #close-help-button-bottom {
+/* MODIFIED: Generic button class for win screen, start, etc. */
+.win-buttons {
     margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+#play-again-button, #share-button, #start-game-button, #close-help-button-bottom {
     padding: 15px 30px;
     font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
     border: none;
     border-radius: 5px;
-    background-color: var(--color-highlight);
     color: var(--color-bg);
-    display: block; /* Make it a block element */
-    width: 100%; /* Make it full width of its container */
+    width: 100%; 
     box-sizing: border-box;
+}
+#play-again-button, #start-game-button, #close-help-button-bottom {
+    background-color: var(--color-highlight);
+}
+/* ADDED: Style for Share button */
+#share-button {
+    background-color: var(--color-correct);
+    color: var(--color-key-used-text);
+}
+#share-button:disabled {
+    opacity: 0.7;
 }
 
 #close-help-button {
@@ -265,6 +301,9 @@ body {
     .cell { font-size: 3.5rem; }
     #keyboard button { height: 50px; }
     #win-message h2 { font-size: 4rem; }
+    .win-buttons {
+        flex-direction: row; /* Stack buttons side-by-side on mobile win screen */
+    }
 }
 
 @media (max-height: 700px) {
