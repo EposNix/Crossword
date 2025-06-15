@@ -15,9 +15,10 @@
              <p id="info-text"></p> <!-- MODIFIED: Text will be set by JS -->
              <div id="game-stats">
                 <span>Guesses: <strong id="guess-count">0</strong></span>
-                <button id="hint-button">Hint (<span id="hints-remaining">3</span>)</button>
+                <button id="hint-button">Hint (<span id="hints-remaining">0</span>)</button>
                 <!-- ADDED: Help button -->
                 <button id="help-button" title="How to Play">?</button>
+                <button id="settings-button" title="Settings">⚙</button>
              </div>
         </div>
         <div id="grid-container"></div>
@@ -110,6 +111,16 @@
         </div>
     </div>
 
+    <div id="difficulty-overlay" class="hidden">
+        <div id="difficulty-content">
+            <h2>Select Difficulty</h2>
+            <div id="difficulty-buttons" class="win-buttons">
+                <button class="difficulty-button" data-difficulty="easy">Easy</button>
+                <button class="difficulty-button" data-difficulty="medium">Medium</button>
+                <button class="difficulty-button" data-difficulty="hard">Hard</button>
+            </div>
+        </div>
+    </div>
 
     <div id="win-overlay" class="hidden">
         <div id="win-message">
