@@ -1,7 +1,11 @@
 // --- Constants ---
 const GRID_SIZE = 4;
-const WORD_FILE = "words4.txt";
-const MAX_HINTS = 3; 
+const DIFFICULTIES = {
+    easy: { wordFile: 'words4.txt', maxHints: 5 },
+    medium: { wordFile: 'words4-medium.txt', maxHints: 3 },
+    hard: { wordFile: 'words4-hard.txt', maxHints: 1 }
+};
+let currentDifficulty = 'easy';
 
 // --- DOM Elements ---
 const infoText = document.getElementById('info-text');
@@ -18,6 +22,9 @@ const splashOverlay = document.getElementById('splash-overlay');
 const startGameButton = document.getElementById('start-game-button');
 const helpOverlay = document.getElementById('help-overlay');
 const helpButton = document.getElementById('help-button');
+const settingsButton = document.getElementById('settings-button');
+const difficultyOverlay = document.getElementById('difficulty-overlay');
+const difficultyButtons = document.querySelectorAll('.difficulty-button');
 const closeHelpButton = document.getElementById('close-help-button');
 const closeHelpButtonBottom = document.getElementById('close-help-button-bottom');
 const shareButton = document.getElementById('share-button'); // ADDED
@@ -29,7 +36,7 @@ let state = {
     solutionCols: null,
     gameOver: false,
     guessCount: 0,
-    hintsRemaining: MAX_HINTS,
+    hintsRemaining: DIFFICULTIES[currentDifficulty].maxHints,
     letterStatus: {} // { 'A': 'correct', 'B': 'present', 'C': 'absent' }
 };
 
@@ -440,7 +447,7 @@ async function initGame() {
         solutionCols: null,
         gameOver: false,
         guessCount: 0,
-        hintsRemaining: MAX_HINTS,
+        hintsRemaining: DIFFICULTIES[currentDifficulty].maxHints,
         letterStatus: {}
     };
 
@@ -449,14 +456,14 @@ async function initGame() {
     gridContainer.innerHTML = '<!-- Generating... -->'; // Clear grid
     winOverlay.classList.add('hidden');
     guessCountEl.textContent = '0';
-    hintsRemainingEl.textContent = MAX_HINTS;
+    hintsRemainingEl.textContent = DIFFICULTIES[currentDifficulty].maxHints;
     hintButton.disabled = false;
     document.querySelectorAll('#keyboard button').forEach(b => b.classList.remove('correct', 'present', 'absent'));
 
-    const allWords = await fetchWords(WORD_FILE);
+    const allWords = await fetchWords(DIFFICULTIES[currentDifficulty].wordFile);
 
     if (!allWords) {
-        infoText.innerHTML = `Error: Could not load word file '${WORD_FILE}'.`;
+        infoText.innerHTML = `Error: Could not load word file '${DIFFICULTIES[currentDifficulty].wordFile}'.`;
         return;
     }
 
@@ -487,12 +494,32 @@ async function initGame() {
 document.addEventListener('DOMContentLoaded', () => {
     setupOnScreenKeyboard();
     document.addEventListener('keydown', handlePhysicalKeyDown);
-    
-    // --- Splash Screen and Game Start ---
+
+    const savedDifficulty = localStorage.getItem('difficulty');
+    if (savedDifficulty && DIFFICULTIES[savedDifficulty]) {
+        currentDifficulty = savedDifficulty;
+    }
+
+    const splashSeen = localStorage.getItem('splashSeen') === 'true';
+
     startGameButton.addEventListener('click', () => {
         splashOverlay.classList.add('hidden');
-        initGame(); // The game only starts when the button is clicked
+        localStorage.setItem('splashSeen', 'true');
+        if (!localStorage.getItem('difficulty')) {
+            difficultyOverlay.classList.remove('hidden');
+        } else {
+            initGame();
+        }
     });
+
+    if (splashSeen) {
+        splashOverlay.classList.add('hidden');
+        if (!savedDifficulty) {
+            difficultyOverlay.classList.remove('hidden');
+        } else {
+            initGame();
+        }
+    }
 
     // --- Help Modal Listeners ---
     helpButton.addEventListener('click', () => {
@@ -526,7 +553,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Other Game Listeners ---
+    // --- Difficulty & Other Game Listeners ---
+    difficultyButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const diff = btn.dataset.difficulty;
+            if (DIFFICULTIES[diff]) {
+                currentDifficulty = diff;
+                localStorage.setItem('difficulty', diff);
+                difficultyOverlay.classList.add('hidden');
+                initGame();
+            }
+        });
+    });
+
+    settingsButton.addEventListener('click', () => {
+        difficultyOverlay.classList.remove('hidden');
+    });
+
     hintButton.addEventListener('click', giveHint);
     playAgainButton.addEventListener('click', initGame);
 });
