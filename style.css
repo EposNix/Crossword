@@ -242,14 +242,14 @@ body {
 #win-message h2 { font-size: 6rem; margin: 0; }
 #win-message p { font-size: 1.5rem; }
 
-#splash-content, #help-content {
+#splash-content, #help-content, #difficulty-content {
     text-align: left;
     color: var(--color-text);
 }
-#splash-content h2, #help-content h2 { margin-top: 0; text-align: center; }
-#splash-content h3, #help-content h3 { margin-top: 25px; margin-bottom: 5px; border-bottom: 1px solid #555; padding-bottom: 5px; }
-#splash-content ul, #help-content ul { list-style-type: none; padding-left: 0; margin: 10px 0 0 0; }
-#splash-content li, #help-content li { margin-bottom: 10px; line-height: 1.4; }
+#splash-content h2, #help-content h2, #difficulty-content h2 { margin-top: 0; text-align: center; }
+#splash-content h3, #help-content h3, #difficulty-content h3 { margin-top: 25px; margin-bottom: 5px; border-bottom: 1px solid #555; padding-bottom: 5px; }
+#splash-content ul, #help-content ul, #difficulty-content ul { list-style-type: none; padding-left: 0; margin: 10px 0 0 0; }
+#splash-content li, #help-content li, #difficulty-content li { margin-bottom: 10px; line-height: 1.4; }
 
 #help-content { max-width: 600px; } /* Wider for more text */
 
@@ -264,6 +264,9 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+#difficulty-buttons {
+    align-items: center;
 }
 #play-again-button, #share-button, #start-game-button, #close-help-button-bottom, .difficulty-button {
     padding: 15px 30px;
@@ -313,6 +316,12 @@ body {
     #win-message h2 { font-size: 4rem; }
     .win-buttons {
         flex-direction: row; /* Stack buttons side-by-side on mobile win screen */
+    }
+    #difficulty-buttons {
+        flex-direction: column; /* Keep difficulty buttons stacked */
+    }
+    #difficulty-buttons .difficulty-button {
+        width: 80%;
     }
 }
 
