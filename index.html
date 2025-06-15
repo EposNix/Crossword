@@ -9,16 +9,19 @@
 </head>
 <body>
 
+    <!-- New top bar for mobile-style icons -->
+    <div id="top-bar">
+        <!-- ADDED: Help and settings icons moved here -->
+        <button id="help-button" title="How to Play">?</button>
+        <button id="settings-button" title="Settings">⚙</button>
+    </div>
+
     <div id="game-container">
-        <h1>Crossword</h1>
         <div id="stats-container">
              <p id="info-text"></p> <!-- MODIFIED: Text will be set by JS -->
              <div id="game-stats">
                 <span>Guesses: <strong id="guess-count">0</strong></span>
                 <button id="hint-button">Hint (<span id="hints-remaining">0</span>)</button>
-                <!-- ADDED: Help button -->
-                <button id="help-button" title="How to Play">?</button>
-                <button id="settings-button" title="Settings">⚙</button>
              </div>
         </div>
         <div id="grid-container"></div>

@@ -36,6 +36,17 @@ body {
     box-sizing: border-box;
 }
 
+/* New top bar for mobile layout */
+#top-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
 #game-container {
     text-align: center;
 }
@@ -310,7 +321,6 @@ body {
     :root {
         --cell-size: 75px; 
     }
-    #game-container h1 { font-size: 1.5rem; }
     .cell { font-size: 3.5rem; }
     #keyboard button { height: 50px; }
     #win-message h2 { font-size: 4rem; }
