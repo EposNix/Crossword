@@ -352,14 +352,9 @@ function updateKeyboardColors() {
         }
     });
     
-    const currentLetterStatus = {};
+    const currentLetterStatus = { ...state.letterStatus };
     const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for (const letter of allLetters) {
-        if (state.letterStatus[letter] === 'absent') {
-            currentLetterStatus[letter] = 'absent';
-            continue;
-        }
-
         if (playerUsedLetters.has(letter)) {
             const totalInSolution = solutionLetterCounts[letter] || 0;
             const correctlyPlaced = playerCorrectCounts[letter] || 0;
@@ -368,7 +363,8 @@ function updateKeyboardColors() {
                 currentLetterStatus[letter] = 'absent';
             } else if (correctlyPlaced === totalInSolution) {
                 currentLetterStatus[letter] = 'correct';
-            } else {
+            } else if (currentLetterStatus[letter] !== 'correct') {
+                // Don't downgrade a previously correct letter to present
                 currentLetterStatus[letter] = 'present';
             }
         }
