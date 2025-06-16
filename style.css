@@ -55,6 +55,15 @@ body {
     color: var(--color-text);
 }
 
+#game-logo {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+    padding: 0.2em;
+}
+
 #game-container {
     text-align: center;
 }
