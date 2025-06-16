@@ -30,21 +30,25 @@ const closeHelpButtonBottom = document.getElementById('close-help-button-bottom'
 const shareButton = document.getElementById('share-button'); 
 
 
-// --- Game State ---
+// --- Game State (MODIFIED: Refactored into a single object) ---
 let state = {
     solutionGrid: null,
     solutionCols: null,
     gameOver: false,
     guessCount: 0,
     hintsRemaining: DIFFICULTIES[currentDifficulty].maxHints,
-    letterStatus: {} 
+    letterStatus: {} // { 'A': 'correct', 'B': 'present', 'C': 'absent' }
 };
 
-// --- Puzzle Generation (Unchanged) ---
+// --- Puzzle Generation (Port of crossword2.py) ---
+// This section remains unchanged.
+
 async function fetchWords(filename) {
     try {
         const response = await fetch(filename);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const text = await response.text();
         return text.split('\n').map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
     } catch (e) {
@@ -52,11 +56,78 @@ async function fetchWords(filename) {
         return null;
     }
 }
-function buildPrefixSet(words, n) { /* ... no changes ... */ }
-function generateCrossword(n, words) { /* ... no changes ... */ }
 
+function buildPrefixSet(words, n) {
+    const prefixes = new Set();
+    for (const w of words) {
+        if (w.length !== n) continue;
+        for (let i = 1; i <= n; i++) {
+            prefixes.add(w.substring(0, i));
+        }
+    }
+    return prefixes;
+}
 
-// --- Game Logic & DOM Manipulation ---
+function generateCrossword(n, words) {
+    const wordList = words.filter(w => w.length === n);
+    for (let i = wordList.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [wordList[i], wordList[j]] = [wordList[j], wordList[i]];
+    }
+
+    const prefixSet = buildPrefixSet(wordList, n);
+    const solutions = [];
+    const currentRows = [];
+
+    function backtrack() {
+        if (solutions.length > 0) return true;
+
+        if (currentRows.length === n) {
+            const cols = [];
+            const used = new Set(currentRows);
+            for (let j = 0; j < n; j++) {
+                let colWord = '';
+                for (let i = 0; i < n; i++) {
+                    colWord += currentRows[i][j];
+                }
+                if (!wordList.includes(colWord) || used.has(colWord)) {
+                    return false;
+                }
+                cols.push(colWord);
+            }
+            solutions.push({ rows: [...currentRows], cols });
+            return true;
+        }
+
+        const k = currentRows.length;
+        for (const word of wordList) {
+            if (currentRows.includes(word)) continue;
+
+            let ok = true;
+            for (let j = 0; j < n; j++) {
+                let prefix = '';
+                for (let i = 0; i < k; i++) {
+                    prefix += currentRows[i][j];
+                }
+                prefix += word[j];
+                if (!prefixSet.has(prefix)) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (!ok) continue;
+
+            currentRows.push(word);
+            if (backtrack()) return true;
+            currentRows.pop();
+        }
+        return false;
+    }
+
+    backtrack();
+    return solutions.length > 0 ? solutions[0] : null;
+}
+
 
 function createGrid() {
     gridContainer.innerHTML = '';
@@ -131,8 +202,63 @@ function handleVirtualKeyPress(key) {
     }
 }
 
-function setupOnScreenKeyboard() { /* ... no changes ... */ }
-function handlePhysicalKeyDown(e) { /* ... no changes ... */ }
+function setupOnScreenKeyboard() {
+    document.querySelectorAll('#keyboard button').forEach(button => {
+        button.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            handleVirtualKeyPress(e.target.dataset.key);
+        });
+    });
+}
+
+function handlePhysicalKeyDown(e) {
+    if (e.ctrlKey || e.metaKey) return;
+    
+    // Don't handle keydown if a modal is open
+    if (!splashOverlay.classList.contains('hidden') || !helpOverlay.classList.contains('hidden')) {
+        return;
+    }
+
+    let nextRow = -1;
+    let nextCol = -1;
+    
+    const activeCell = document.querySelector('.cell:focus');
+    if(activeCell) {
+        const {r, c} = activeCell.dataset;
+        nextRow = parseInt(r);
+        nextCol = parseInt(c);
+    } else {
+        return; // No active cell, don't process keys
+    }
+
+    switch (e.key) {
+        case 'ArrowUp':
+            if (nextRow > 0) document.getElementById(`cell-${nextRow - 1}-${nextCol}`).focus();
+            break;
+        case 'ArrowDown':
+            if (nextRow < GRID_SIZE - 1) document.getElementById(`cell-${nextRow + 1}-${nextCol}`).focus();
+            break;
+        case 'ArrowLeft':
+            if (nextCol > 0) document.getElementById(`cell-${nextRow}-${nextCol-1}`).focus();
+            break;
+        case 'ArrowRight':
+             if (nextCol < GRID_SIZE - 1) document.getElementById(`cell-${nextRow}-${nextCol+1}`).focus();
+            break;
+        case 'Backspace':
+            handleVirtualKeyPress('DEL');
+            break;
+        case 'Enter':
+            handleVirtualKeyPress('ENTER');
+            break;
+        default:
+            if (e.key.length === 1 && e.key.match(/[a-z]/i)) {
+                handleVirtualKeyPress(e.key);
+            }
+            return;
+    }
+    e.preventDefault();
+}
+
 
 function focusNextCell(r, c) {
     let next_c = c + 1;
@@ -159,7 +285,20 @@ function focusNextCell(r, c) {
     return null;
 }
 
-function focusPrevCell(r, c) { /* ... no changes ... */ }
+function focusPrevCell(r, c) {
+    let prev_c = c - 1;
+    let prev_r = r;
+    if (prev_c < 0) {
+        prev_c = GRID_SIZE - 1;
+        prev_r--;
+    }
+    if (prev_r >= 0) {
+        const prevCell = document.getElementById(`cell-${prev_r}-${prev_c}`);
+        if(prevCell) prevCell.focus();
+        return prevCell;
+    }
+    return null;
+}
 
 function updateCellAndKeyboard(cell) {
     updateCellColor(cell);
@@ -194,9 +333,63 @@ function updateCellColor(cell) {
     cell.classList.add(animationClass);
 }
 
-function updateKeyboardColors() { /* ... no changes ... */ }
+function updateKeyboardColors() {
+    const solutionLetterCounts = {};
+    if (state.solutionGrid) {
+        for (const row of state.solutionGrid) {
+            for (const letter of row) {
+                solutionLetterCounts[letter] = (solutionLetterCounts[letter] || 0) + 1;
+            }
+        }
+    }
 
-// MODIFIED: Now triggers win animation and returns true/false
+    const playerCorrectCounts = {};
+    const playerUsedLetters = new Set();
+    const allPlayerCells = document.querySelectorAll('.cell');
+    allPlayerCells.forEach(cell => {
+        const playerLetter = cell.value;
+        if (!playerLetter) return;
+
+        playerUsedLetters.add(playerLetter);
+
+        const { r, c } = cell.dataset;
+        if (playerLetter === state.solutionGrid[r][c]) {
+            playerCorrectCounts[playerLetter] = (playerCorrectCounts[playerLetter] || 0) + 1;
+        }
+    });
+    
+    const currentLetterStatus = { ...state.letterStatus };
+    const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (const letter of allLetters) {
+        if (playerUsedLetters.has(letter)) {
+            const totalInSolution = solutionLetterCounts[letter] || 0;
+            const correctlyPlaced = playerCorrectCounts[letter] || 0;
+
+            if (totalInSolution === 0) {
+                currentLetterStatus[letter] = 'absent';
+            } else if (correctlyPlaced === totalInSolution) {
+                currentLetterStatus[letter] = 'correct';
+            } else if (currentLetterStatus[letter] !== 'correct') {
+                // Don't downgrade a previously correct letter to present
+                currentLetterStatus[letter] = 'present';
+            }
+        }
+    }
+
+    state.letterStatus = currentLetterStatus;
+
+    document.querySelectorAll('#keyboard button').forEach(button => {
+        const key = button.dataset.key;
+        if (key && key.length === 1) {
+            button.classList.remove('correct', 'present', 'absent');
+            if (state.letterStatus[key]) {
+                button.classList.add(state.letterStatus[key]);
+            }
+        }
+    });
+}
+
+
 function checkWin() {
     for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
@@ -214,7 +407,6 @@ function checkWin() {
     return true; // Won!
 }
 
-// ADDED: Celebratory win animation
 function runWinAnimation() {
     document.querySelectorAll('.cell').forEach((cell, i) => {
         setTimeout(() => {
@@ -264,7 +456,14 @@ function giveHint() {
 
 async function initGame() {
     // Reset state
-    state = { /* ... no changes ... */ };
+    state = {
+        solutionGrid: null,
+        solutionCols: null,
+        gameOver: false,
+        guessCount: 0,
+        hintsRemaining: DIFFICULTIES[currentDifficulty].maxHints,
+        letterStatus: {}
+    };
 
     // Reset UI
     infoText.textContent = 'Generating new puzzle...';
@@ -296,6 +495,7 @@ async function initGame() {
         infoText.textContent = `Could not generate a puzzle. Try refreshing.`;
     }
 }
+
 
 // --- Main Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
