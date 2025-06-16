@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <!-- MODIFIED: Added maximum-scale=1 to prevent iOS zoom on input focus -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
-    <title>HTML Crossword</title>
+    <title>4DOWN</title>
+    <link rel="icon" href="4DOWN-icon.png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,6 +16,8 @@
         <button id="help-button" title="How to Play">?</button>
         <button id="settings-button" title="Settings">⚙</button>
     </div>
+
+    <img id="game-logo" src="4DOWN-small.png" alt="4DOWN logo">
 
     <div id="game-container">
         <div id="stats-container">
@@ -92,7 +95,7 @@
     <div id="help-overlay" class="hidden">
         <div id="help-content">
             <button id="close-help-button">×</button>
-            <h2>How to Play: HTML Crossword</h2>
+            <h2>How to Play: 4DOWN</h2>
             <p>The objective is to fill the 4x4 grid with letters, creating four valid 4-letter words across and four down.</p>
             
             <h3>1. Grid Cell Colors: Your Local Clues</h3>
