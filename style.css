@@ -56,12 +56,8 @@ body {
 }
 
 #game-logo {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-    object-fit: contain;
-    padding: 0.2em;
+    max-width: 150px;
+    width: 50vw;
 }
 
 #game-container {
