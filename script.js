@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- ADDED: Share Button Listener ---
     shareButton.addEventListener('click', () => {
-        const shareText = `I solved the HTML Crossword in ${state.guessCount} guesses! 🧩\n\nTry it yourself!`;
+        const shareText = `I solved 4DOWN in ${state.guessCount} guesses! 🧩\n\nTry it yourself!`;
         
         navigator.clipboard.writeText(shareText).then(() => {
             const originalText = shareButton.textContent;

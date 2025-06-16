@@ -47,6 +47,12 @@ body {
     box-sizing: border-box;
 }
 
+#game-logo {
+    width: 150px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
 #game-container {
     text-align: center;
 }
@@ -319,7 +325,7 @@ body {
 /* --- Responsive Design for Mobile --- */
 @media (max-width: 600px) {
     :root {
-        --cell-size: 75px; 
+        --cell-size: 75px;
     }
     .cell { font-size: 3.5rem; }
     #keyboard button { height: 50px; }
@@ -332,6 +338,9 @@ body {
     }
     #difficulty-buttons .difficulty-button {
         width: 80%;
+    }
+    #game-logo {
+        width: 100px;
     }
 }
 
