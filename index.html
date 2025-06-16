@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- MODIFIED: Added maximum-scale=1 to prevent iOS zoom on input focus -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
     <title>4DOWN</title>
     <link rel="icon" href="4DOWN-icon.png">
@@ -10,19 +9,24 @@
 </head>
 <body>
 
-    <!-- New top bar for mobile-style icons -->
+    <!-- MODIFIED: Replaced img with a styled h1 for better semantics and crispness -->
     <div id="top-bar">
-        <!-- ADDED: Help and settings icons moved here -->
         <button id="help-button" title="How to Play">?</button>
-        <img id="game-logo" src="4DOWN-small.png" alt="4DOWN logo">
+        <h1 id="game-title">4DOWN</h1>
         <button id="settings-button" title="Settings">⚙</button>
     </div>
 
     <div id="game-container">
+        <!-- MODIFIED: Restructured stats for better styling -->
         <div id="stats-container">
-             <p id="info-text"></p> <!-- MODIFIED: Text will be set by JS -->
+             <div id="info-text-wrapper">
+                <p id="info-text"></p>
+             </div>
              <div id="game-stats">
-                <span>Guesses: <strong id="guess-count">0</strong></span>
+                <div class="stat-box">
+                    <span>Guesses</span>
+                    <strong id="guess-count">0</strong>
+                </div>
                 <button id="hint-button">Hint (<span id="hints-remaining">0</span>)</button>
              </div>
         </div>
@@ -67,7 +71,7 @@
         </div>
     </div>
 
-    <!-- ADDED: Splash screen overlay -->
+    <!-- Splash screen overlay is unchanged -->
     <div id="splash-overlay">
         <div id="splash-content">
             <h2>How to Play</h2>
@@ -90,7 +94,7 @@
         </div>
     </div>
 
-    <!-- ADDED: Help modal overlay -->
+    <!-- Help modal overlay is unchanged -->
     <div id="help-overlay" class="hidden">
         <div id="help-content">
             <button id="close-help-button">×</button>
@@ -115,15 +119,16 @@
              <button id="close-help-button-bottom">Close</button>
         </div>
     </div>
-
+    
+    <!-- Difficulty overlay is unchanged -->
     <div id="difficulty-overlay" class="hidden">
         <div id="difficulty-content">
             <h2>Select Difficulty</h2>
             <p>Different word lists and hint counts offer varying challenge levels:</p>
             <ul>
-                <li><strong>Easy</strong>: Common words &mdash; <strong>5</strong> hints.</li>
-                <li><strong>Medium</strong>: Less common words &mdash; <strong>3</strong> hints.</li>
-                <li><strong>Hard</strong>: Very uncommon words &mdash; <strong>1</strong> hint.</li>
+                <li><strong>Easy</strong>: Common words — <strong>5</strong> hints.</li>
+                <li><strong>Medium</strong>: Less common words — <strong>3</strong> hints.</li>
+                <li><strong>Hard</strong>: Very uncommon words — <strong>1</strong> hint.</li>
             </ul>
             <div id="difficulty-buttons" class="win-buttons">
                 <button class="difficulty-button" data-difficulty="easy">Easy</button>
@@ -133,14 +138,13 @@
         </div>
     </div>
 
+    <!-- Win overlay is unchanged -->
     <div id="win-overlay" class="hidden">
         <div id="win-message">
             <h2>YOU WIN!</h2>
             <p>You solved it in <strong id="win-guesses">0</strong> guesses!</p>
-            <!-- MODIFIED: Added a container for buttons -->
             <div class="win-buttons">
                  <button id="play-again-button">Play Again</button>
-                 <!-- ADDED: Share button -->
                  <button id="share-button">Share</button>
             </div>
         </div>
