@@ -4,16 +4,17 @@
     --margin: 20px;
 
     /* MODIFIED: Softer, more modern color palette */
-    --color-bg: #121213; /* A very dark gray, easier on the eyes than pure black */
+    --color-bg: #130C1F; /* Updated background color */
     --color-text: #e1e1e1;
     --color-border: #3a3a3c;
     --color-border-active: #565758;
-    --color-correct: #538d4e;
-    --color-present: #b59f3b;
-    --color-absent: #3a3a3c;
+    /* After feedback, orange indicates a correct letter & placement */
+    --color-correct: #F28D3C; /* orange - correct letter */
+    --color-present: #BB67A4; /* magenta - letter elsewhere */
+    --color-absent: #2E2F4E; /* deep navy blue */
     --color-key-used-text: #ffffff;
     --color-highlight: #8774e1; /* Changed to a purple for a unique brand feel */
-    --color-key-bg: #818384;
+    --color-key-bg: #2C2750; /* dark violet blue */
     --color-key-text: #ffffff;
 }
 
