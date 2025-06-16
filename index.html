@@ -77,16 +77,16 @@
             
             <h3>Grid Cell Colors (Row & Column Clues)</h3>
             <ul>
-                <li>🟩 <strong>Green:</strong> Correct letter, correct spot.</li>
-                <li>🟨 <strong>Yellow:</strong> Letter is in this row OR column, but wrong spot.</li>
-                <li>⬛ <strong>Gray:</strong> Letter is not in this row or column.</li>
+                <li>🟧 <strong>Orange:</strong> Correct letter, correct spot.</li>
+                <li>🟪 <strong>Magenta:</strong> Letter is in this row OR column, but wrong spot.</li>
+                <li>🟦 <strong>Navy:</strong> Letter is not in this row or column.</li>
             </ul>
 
             <h3>Keyboard Key Colors (Whole Puzzle Clues)</h3>
             <ul>
-                <li>🟩 <strong>Green:</strong> You've found all of this letter in the puzzle!</li>
-                <li>🟨 <strong>Yellow:</strong> This letter exists in the puzzle, but you haven't found all of its locations yet.</li>
-                <li>⬛ <strong>Gray:</strong> This letter is not in the puzzle at all.</li>
+                <li>🟧 <strong>Orange:</strong> You've found all of this letter in the puzzle!</li>
+                <li>🟪 <strong>Magenta:</strong> This letter exists in the puzzle, but you haven't found all of its locations yet.</li>
+                <li>🟦 <strong>Navy:</strong> This letter is not in the puzzle at all.</li>
             </ul>
             <button id="start-game-button">Start Game</button>
         </div>
@@ -102,17 +102,17 @@
             <h3>1. Grid Cell Colors: Your Local Clues</h3>
             <p>The color of a letter <em>in the grid</em> tells you about its relationship to the specific <strong>row and column</strong> it's in.</p>
             <ul>
-                <li><span class="text-correct"><strong>GREEN</strong></span>: Perfect! This letter is in the correct spot.</li>
-                <li><span class="text-present"><strong>YELLOW</strong></span>: Close! This letter exists in the current row OR the current column, but it's in the wrong position.</li>
-                <li><span class="text-absent"><strong>GRAY</strong></span>: Wrong. This letter does not appear anywhere in the current row or column.</li>
+                <li><span class="text-correct"><strong>ORANGE</strong></span>: Perfect! This letter is in the correct spot.</li>
+                <li><span class="text-present"><strong>MAGENTA</strong></span>: Close! This letter exists in the current row OR the current column, but it's in the wrong position.</li>
+                <li><span class="text-absent"><strong>NAVY</strong></span>: Wrong. This letter does not appear anywhere in the current row or column.</li>
             </ul>
 
             <h3>2. Keyboard Key Colors: Your Global Clues</h3>
             <p>The color of a key <em>on your keyboard</em> gives you information about that letter's status across the <strong>entire puzzle</strong>.</p>
             <ul>
-                <li><span class="text-correct"><strong>GREEN</strong></span>: All Found! You have correctly placed every single instance of this letter in the puzzle.</li>
-                <li><span class="text-present"><strong>YELLOW</strong></span>: It's In Here! This letter is part of the solution, but you haven't found all of its correct locations yet.</li>
-                <li><span class="text-absent"><strong>GRAY</strong></span>: Not in Puzzle. This letter does not appear anywhere in the final solution.</li>
+                <li><span class="text-correct"><strong>ORANGE</strong></span>: All Found! You have correctly placed every single instance of this letter in the puzzle.</li>
+                <li><span class="text-present"><strong>MAGENTA</strong></span>: It's In Here! This letter is part of the solution, but you haven't found all of its correct locations yet.</li>
+                <li><span class="text-absent"><strong>NAVY</strong></span>: Not in Puzzle. This letter does not appear anywhere in the final solution.</li>
             </ul>
              <button id="close-help-button-bottom">Close</button>
         </div>
