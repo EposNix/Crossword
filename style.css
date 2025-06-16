@@ -8,9 +8,8 @@
     --color-text: #e1e1e1;
     --color-border: #3a3a3c;
     --color-border-active: #565758;
-    /* After feedback, orange indicates a correct letter & placement */
-    --color-correct: #F28D3C; /* orange - correct letter */
-    --color-present: #BB67A4; /* magenta - letter elsewhere */
+    --color-correct: #F28D3C; /* vibrant orange */
+    --color-present: #BB67A4; /* bold magenta/purple */
     --color-absent: #2E2F4E; /* deep navy blue */
     --color-key-used-text: #ffffff;
     --color-highlight: #8774e1; /* Changed to a purple for a unique brand feel */
