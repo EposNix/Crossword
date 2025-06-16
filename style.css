@@ -46,6 +46,14 @@ body {
     box-sizing: border-box;
 }
 
+/* Container just for the logo so it doesn't enlarge the top bar */
+#logo-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}
+
 /* MODIFIED: New h1 styling to replace the image */
 #game-title {
     font-size: 2.5rem;
@@ -56,8 +64,9 @@ body {
 }
 
 #game-logo {
+    width: 40vw;
     max-width: 200px;
-    width: 25vw;
+    height: auto;
 }
 
 #game-container {
@@ -300,6 +309,7 @@ body {
     .win-buttons { flex-direction: row; }
     #difficulty-buttons { flex-direction: column; }
     #difficulty-buttons .difficulty-button { width: 80%; }
+    #game-logo { width: 60vw; }
 }
 
 @media (max-height: 750px) {
