@@ -3,18 +3,39 @@
     --cell-size: 100px;
     --margin: 20px;
 
-    /* MODIFIED: Softer, more modern color palette */
-    --color-bg: #130C1F; /* Updated background color */
+    /* Enhanced color palette with better contrast and depth */
+    --color-bg: #130C1F;
     --color-text: #e1e1e1;
+    --color-text-secondary: #a1a1aa;
     --color-border: #3a3a3c;
     --color-border-active: #565758;
-    --color-correct: #F28D3C; /* vibrant orange */
-    --color-present: #BB67A4; /* bold magenta/purple */
-    --color-absent: #2E2F4E; /* deep navy blue */
+    --color-correct: #F28D3C;
+    --color-present: #BB67A4;
+    --color-absent: #6B7280; /* Much better contrast! */
     --color-key-used-text: #ffffff;
-    --color-highlight: #8774e1; /* Changed to a purple for a unique brand feel */
-    --color-key-bg: #2C2750; /* dark violet blue */
+    --color-highlight: #8774e1;
+    --color-key-bg: #2C2750;
     --color-key-text: #ffffff;
+    --color-error: #ef4444;
+    --color-success: #22c55e;
+    
+    /* Spacing system */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* Shadows for depth */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+    
+    /* Border radius system */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 50%;
 }
 
 html, body {
@@ -24,17 +45,30 @@ html, body {
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: var(--color-bg);
+    background: linear-gradient(135deg, var(--color-bg) 0%, #1a1032 100%);
     color: var(--color-text);
     display: flex;
     flex-direction: column;
-    /* MODIFIED: space-around creates better vertical balance */
     justify-content: space-around; 
     align-items: center;
     margin: 0;
-    /* MODIFIED: Padding ensures content doesn't hit screen edges */
     padding: 10px 10px 20px 10px; 
     box-sizing: border-box;
+    position: relative;
+}
+
+/* Add subtle background pattern */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(circle at 25% 25%, rgba(135, 116, 225, 0.1) 0%, transparent 50%),
+                      radial-gradient(circle at 75% 75%, rgba(187, 103, 164, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
 }
 
 #top-bar {
@@ -42,48 +76,48 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 5px;
+    padding: 0 var(--spacing-sm);
     box-sizing: border-box;
+    margin-bottom: var(--spacing-md);
 }
 
-/* Container just for the logo so it doesn't enlarge the top bar */
-#logo-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin: 10px 0;
-}
-
-/* MODIFIED: New h1 styling to replace the image */
+/* Game title styling */
 #game-title {
     font-size: 2.5rem;
     font-weight: 800;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.2em;
     margin: 0;
-    color: var(--color-text);
+    color: var(--color-highlight);
+    text-shadow: 0 2px 4px rgba(135, 116, 225, 0.3);
+    background: linear-gradient(135deg, var(--color-highlight), var(--color-present));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 #game-logo {
     width: 40vw;
     max-width: 200px;
     height: auto;
+    filter: drop-shadow(0 2px 8px rgba(135, 116, 225, 0.3));
 }
 
 #game-container {
     text-align: center;
+    width: 100%;
+    max-width: 500px;
 }
 
 #stats-container {
-    height: auto; /* MODIFIED: Let content define height */
-    margin-bottom: 20px;
+    height: auto;
+    margin-bottom: var(--spacing-lg);
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Add gap between info text and stats */
+    gap: var(--spacing-md);
 }
 
-/* MODIFIED: Wrapper to keep info text centered and prevent layout shifts */
 #info-text-wrapper {
-    height: 1.5rem; 
+    height: 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -91,141 +125,312 @@ body {
 
 #info-text {
     font-size: 1.1rem;
+    font-weight: 500;
     margin: 0;
+    color: var(--color-highlight);
+    text-align: center;
+    transition: all 0.3s ease;
+    min-height: 1.5em;
 }
 
 #game-stats {
     display: flex;
-    gap: 20px;
+    gap: var(--spacing-xl);
     align-items: center;
-    justify-content: center; /* Center the stats below the info text */
+    justify-content: center;
+    padding: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
 }
 
-/* MODIFIED: Stat box styling for a cleaner look */
 .stat-box {
     display: flex;
     flex-direction: column;
     align-items: center;
     line-height: 1.2;
-}
-.stat-box span {
-    font-size: 0.8rem;
-    color: #818384;
-}
-.stat-box strong {
-    font-size: 1.5rem;
+    transition: transform 0.2s ease;
 }
 
+.stat-box:hover {
+    transform: translateY(-2px);
+}
+
+.stat-box span {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+.stat-box strong {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+/* Enhanced button styles */
 #hint-button, #help-button, #settings-button {
     font-size: 0.9rem;
-    padding: 5px 10px;
-    border-radius: 4px;
-    border: none; /* MODIFIED: Removed border for a flatter look */
-    background-color: var(--color-border); /* MODIFIED */
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--color-border) 0%, #3a3550 100%);
     color: var(--color-text);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
 }
+
+#hint-button::before, #help-button::before, #settings-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+#hint-button:hover::before, #help-button:hover::before, #settings-button:hover::before {
+    left: 100%;
+}
+
 #hint-button:hover, #help-button:hover, #settings-button:hover {
-    background-color: var(--color-border-active);
+    background: linear-gradient(135deg, var(--color-border-active) 0%, #4a4260 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 #help-button, #settings-button {
     font-weight: bold;
-    width: 35px; /* Slightly larger */
-    height: 35px;
-    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
     padding: 0;
-    font-size: 1.4rem;
-    line-height: 1; 
+    font-size: 1.2rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #hint-button {
-    padding: 10px 15px;
+    padding: 12px var(--spacing-md);
+    min-height: 44px;
 }
 
 #hint-button:disabled {
-    background-color: var(--color-border);
+    background: var(--color-border);
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
+#hint-button:disabled::before {
+    display: none;
+}
+
+/* Enhanced grid styling */
 #grid-container {
     display: grid;
     grid-template-columns: repeat(var(--grid-size), var(--cell-size));
     grid-template-rows: repeat(var(--grid-size), var(--cell-size));
-    gap: 5px; /* MODIFIED: Adds space between cells */
-    margin-bottom: 20px;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-lg);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .cell {
     width: var(--cell-size);
     height: var(--cell-size);
-    /* MODIFIED: Cells are transparent until filled */
-    border: 2px solid var(--color-border); 
-    background-color: transparent;
-    border-radius: 4px; /* Softer edges */
-    color: var(--color-text); /* Text is now light */
+    border: 2px solid var(--color-border);
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
     font-size: 4rem;
     font-weight: bold;
     text-align: center;
     text-transform: uppercase;
-    caret-color: var(--color-highlight); /* MODIFIED */
+    caret-color: var(--color-highlight);
     box-sizing: border-box;
     position: relative;
-    transition: transform 0.2s ease-in-out, border-color 0.2s ease;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
 }
 
-/* MODIFIED: Style for when a cell has a letter in it */
 .cell.has-content {
     border-color: var(--color-border-active);
+    background-color: rgba(255, 255, 255, 0.08);
+    transform: scale(1.02);
+}
+
+.cell:hover:not(.correct):not(.present):not(.absent) {
+    border-color: var(--color-highlight);
+    background-color: rgba(135, 116, 225, 0.1);
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(135, 116, 225, 0.3);
 }
 
 .cell:focus {
-    /* MODIFIED: A more subtle, modern outline */
     outline: none;
     border-color: var(--color-highlight);
-    transform: scale(1.05); /* Pop effect on focus */
+    transform: scale(1.05);
+    box-shadow: 0 0 0 3px rgba(135, 116, 225, 0.3);
 }
 
-/* MODIFIED: States now just change background, keeping border radius */
-.cell.correct { background-color: var(--color-correct); border-color: var(--color-correct); }
-.cell.present { background-color: var(--color-present); border-color: var(--color-present); }
-.cell.absent  { background-color: var(--color-absent);  border-color: var(--color-absent); }
+.cell:focus-visible {
+    outline: 2px solid var(--color-highlight);
+    outline-offset: 2px;
+}
 
-/* --- Cell Animations --- */
-.cell.animate-jump { animation: jump 0.5s ease; }
-@keyframes jump { 0%, 100% { transform: translateY(0) scale(1.05); } 50% { transform: translateY(-15px) scale(1.1); } }
+/* Current cell indicator */
+.cell.current {
+    box-shadow: 0 0 0 3px var(--color-highlight);
+    border-color: var(--color-highlight);
+}
 
-.cell.animate-shake { animation: shake 0.5s ease; }
-@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+/* Enhanced state colors with better visual feedback */
+.cell.correct { 
+    background: linear-gradient(135deg, var(--color-correct) 0%, #e07b2a 100%);
+    border-color: var(--color-correct);
+    color: white;
+    box-shadow: 0 4px 8px rgba(242, 141, 60, 0.3);
+}
 
-.cell.animate-wobble { animation: wobble 0.5s ease; }
-@keyframes wobble { 0%, 100% { transform: rotate(0deg) scale(1.05); } 25% { transform: rotate(5deg) scale(1.05); } 75% { transform: rotate(-5deg) scale(1.05); } }
+.cell.present { 
+    background: linear-gradient(135deg, var(--color-present) 0%, #a85593 100%);
+    border-color: var(--color-present);
+    color: white;
+    box-shadow: 0 4px 8px rgba(187, 103, 164, 0.3);
+}
 
-/* ADDED: Win animation */
-.cell.animate-flip { animation: flip 0.6s ease forwards; }
+.cell.absent { 
+    background: linear-gradient(135deg, var(--color-absent) 0%, #5b6470 100%);
+    border-color: var(--color-absent);
+    color: white;
+    box-shadow: 0 4px 8px rgba(107, 114, 128, 0.2);
+}
+
+/* Enhanced animations */
+.cell.animate-jump { 
+    animation: jump 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+@keyframes jump { 
+    0%, 100% { transform: translateY(0) scale(1.05); } 
+    50% { transform: translateY(-20px) scale(1.15); } 
+}
+
+.cell.animate-shake { 
+    animation: shake 0.6s ease-in-out;
+}
+@keyframes shake { 
+    0%, 100% { transform: translateX(0); } 
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); } 
+    20%, 40%, 60%, 80% { transform: translateX(8px); } 
+}
+
+.cell.animate-wobble { 
+    animation: wobble 0.8s ease-in-out;
+}
+@keyframes wobble { 
+    0%, 100% { transform: rotate(0deg) scale(1.05); } 
+    15% { transform: rotate(7deg) scale(1.05); } 
+    30% { transform: rotate(-7deg) scale(1.05); } 
+    45% { transform: rotate(5deg) scale(1.05); }
+    60% { transform: rotate(-3deg) scale(1.05); }
+    75% { transform: rotate(2deg) scale(1.05); }
+}
+
+.cell.animate-flip { 
+    animation: flip 0.8s ease forwards;
+}
 @keyframes flip {
-  0% { transform: rotateX(0); background-color: var(--color-absent); border-color: var(--color-border-active); }
-  50% { transform: rotateX(90deg); background-color: var(--color-absent); border-color: var(--color-border-active); }
-  100% { transform: rotateX(0); background-color: var(--color-correct); border-color: var(--color-correct); }
+    0% { 
+        transform: rotateY(0); 
+        background: var(--color-absent); 
+        border-color: var(--color-border-active); 
+    }
+    50% { 
+        transform: rotateY(90deg); 
+        background: var(--color-absent); 
+        border-color: var(--color-border-active); 
+    }
+    100% { 
+        transform: rotateY(0); 
+        background: linear-gradient(135deg, var(--color-correct) 0%, #e07b2a 100%);
+        border-color: var(--color-correct);
+        box-shadow: 0 4px 8px rgba(242, 141, 60, 0.3);
+    }
 }
 
-/* --- On-screen Keyboard --- */
+/* Loading and error states */
+.cell.loading {
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.03) 25%, 
+        rgba(135, 116, 225, 0.2) 50%, 
+        rgba(255, 255, 255, 0.03) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.cell.error {
+    animation: error-pulse 0.6s ease;
+}
+
+@keyframes error-pulse {
+    0%, 100% { 
+        border-color: var(--color-border); 
+        box-shadow: var(--shadow-sm);
+    }
+    50% { 
+        border-color: var(--color-error); 
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+        transform: scale(1.1);
+    }
+}
+
+/* Enhanced keyboard styling */
 #keyboard {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--spacing-sm);
     width: 100%;
     max-width: 600px;
     user-select: none;
+    padding: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(5px);
 }
 
-.keyboard-row { display: flex; justify-content: center; gap: 6px; }
+.keyboard-row { 
+    display: flex; 
+    justify-content: center; 
+    gap: var(--spacing-xs); 
+}
 
 #keyboard button {
     font-family: inherit;
-    font-weight: bold;
+    font-weight: 600;
     font-size: 1.2rem;
     padding: 0;
     margin: 0;
@@ -233,91 +438,445 @@ body {
     flex: 1;
     max-width: 45px;
     border: 0;
-    border-radius: 4px;
-    background-color: var(--color-key-bg);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--color-key-bg) 0%, #2a2348 100%);
     color: var(--color-key-text);
     cursor: pointer;
-    /* MODIFIED: Added transition for smooth color changes */
-    transition: background-color 0.2s ease-in-out;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
 }
 
-#keyboard button.key-wide { flex-grow: 1.5; max-width: 75px; font-size: 0.9rem; }
-#keyboard button:active { background-color: #555; transform: translateY(1px); }
+#keyboard button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.3s ease;
+}
 
-#keyboard button.correct { background-color: var(--color-correct); color: var(--color-key-used-text); }
-#keyboard button.present { background-color: var(--color-present); color: var(--color-key-used-text); }
-#keyboard button.absent { background-color: var(--color-absent); color: var(--color-key-used-text); }
+#keyboard button:hover:not(.correct):not(.present):not(.absent) {
+    background: linear-gradient(135deg, #3a3550 0%, #342d4a 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
 
+#keyboard button:hover::before {
+    left: 100%;
+}
 
-/* --- Overlays (Unchanged, already well-styled) --- */
+#keyboard button.key-wide { 
+    flex-grow: 1.5; 
+    max-width: 75px; 
+    font-size: 0.9rem; 
+    font-weight: 700;
+}
+
+#keyboard button:active { 
+    background: linear-gradient(135deg, #444 0%, #333 100%);
+    transform: translateY(1px);
+    box-shadow: var(--shadow-sm);
+}
+
+#keyboard button.correct { 
+    background: linear-gradient(135deg, var(--color-correct) 0%, #e07b2a 100%);
+    color: var(--color-key-used-text);
+    box-shadow: 0 4px 8px rgba(242, 141, 60, 0.3);
+}
+
+#keyboard button.present { 
+    background: linear-gradient(135deg, var(--color-present) 0%, #a85593 100%);
+    color: var(--color-key-used-text);
+    box-shadow: 0 4px 8px rgba(187, 103, 164, 0.3);
+}
+
+#keyboard button.absent { 
+    background: linear-gradient(135deg, var(--color-absent) 0%, #5b6470 100%);
+    color: var(--color-key-used-text);
+    opacity: 0.7;
+}
+
+/* Enhanced overlay styling */
 #win-overlay, #splash-overlay, #help-overlay, #difficulty-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 100;
-    padding: 15px;
+    padding: var(--spacing-md);
     box-sizing: border-box;
+    animation: fadeIn 0.3s ease;
 }
-#win-overlay.hidden, #splash-overlay.hidden, #help-overlay.hidden, #difficulty-overlay.hidden { display: none; }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#win-overlay.hidden, #splash-overlay.hidden, #help-overlay.hidden, #difficulty-overlay.hidden { 
+    display: none; 
+}
 
 #win-message, #splash-content, #help-content, #difficulty-content {
-    background-color: #2c2c2c;
-    padding: 30px;
-    border-radius: 10px;
+    background: linear-gradient(135deg, #2c2c2c 0%, #1e1e1e 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
     max-width: 500px;
     width: 100%;
     text-align: center;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.4s ease;
 }
 
-#win-message { color: var(--color-correct); }
-#win-message h2 { font-size: 6rem; margin: 0; }
-#win-message p { font-size: 1.5rem; }
-#splash-content, #help-content, #difficulty-content { text-align: left; color: var(--color-text); }
-#splash-content h2, #help-content h2, #difficulty-content h2 { margin-top: 0; text-align: center; }
-#splash-content h3, #help-content h3, #difficulty-content h3 { margin-top: 25px; margin-bottom: 5px; border-bottom: 1px solid #555; padding-bottom: 5px; }
-#splash-content ul, #help-content ul, #difficulty-content ul { list-style-type: none; padding-left: 0; margin: 10px 0 0 0; }
-#splash-content li, #help-content li, #difficulty-content li { margin-bottom: 10px; line-height: 1.4; }
-#help-content { max-width: 600px; }
-.text-correct { color: var(--color-correct); }
-.text-present { color: var(--color-present); }
-.text-absent  { color: var(--color-absent); font-style: italic; }
+@keyframes slideUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(30px) scale(0.95); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+    }
+}
 
-.win-buttons { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
-#difficulty-buttons { align-items: center; }
+#win-message { 
+    color: var(--color-correct); 
+    text-shadow: 0 2px 4px rgba(242, 141, 60, 0.3);
+}
+
+#win-message h2 { 
+    font-size: 6rem; 
+    margin: 0;
+    background: linear-gradient(135deg, var(--color-correct), var(--color-success));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+#win-message p { 
+    font-size: 1.5rem; 
+    color: var(--color-text);
+}
+
+#splash-content, #help-content, #difficulty-content { 
+    text-align: left; 
+    color: var(--color-text); 
+}
+
+#splash-content h2, #help-content h2, #difficulty-content h2 { 
+    margin-top: 0; 
+    text-align: center;
+    color: var(--color-highlight);
+    font-size: 2rem;
+}
+
+#splash-content h3, #help-content h3, #difficulty-content h3 { 
+    margin-top: 25px; 
+    margin-bottom: 10px; 
+    border-bottom: 2px solid rgba(135, 116, 225, 0.3); 
+    padding-bottom: var(--spacing-sm);
+    color: var(--color-highlight);
+}
+
+#splash-content ul, #help-content ul, #difficulty-content ul { 
+    list-style-type: none; 
+    padding-left: 0; 
+    margin: 10px 0 0 0; 
+}
+
+#splash-content li, #help-content li, #difficulty-content li { 
+    margin-bottom: 12px; 
+    line-height: 1.6;
+    padding-left: var(--spacing-md);
+    position: relative;
+}
+
+#splash-content li::before, #help-content li::before, #difficulty-content li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--color-highlight);
+    font-weight: bold;
+}
+
+#help-content { 
+    max-width: 600px; 
+}
+
+.text-correct { 
+    color: var(--color-correct); 
+    font-weight: 600;
+}
+
+.text-present { 
+    color: var(--color-present); 
+    font-weight: 600;
+}
+
+.text-absent { 
+    color: var(--color-absent); 
+    font-style: italic; 
+    font-weight: 600;
+}
+
+.win-buttons { 
+    margin-top: var(--spacing-lg); 
+    display: flex; 
+    flex-direction: column; 
+    gap: var(--spacing-md); 
+}
+
+#difficulty-buttons { 
+    align-items: center; 
+}
+
 #play-again-button, #share-button, #start-game-button, #close-help-button-bottom, .difficulty-button {
-    padding: 15px 30px; font-size: 1.2rem; font-weight: bold; cursor: pointer; border: none; border-radius: 5px; color: var(--color-bg); width: 100%; box-sizing: border-box;
+    padding: var(--spacing-md) var(--spacing-xl); 
+    font-size: 1.2rem; 
+    font-weight: 700; 
+    cursor: pointer; 
+    border: none; 
+    border-radius: var(--radius-sm); 
+    width: 100%; 
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
 }
-#play-again-button, #start-game-button, #close-help-button-bottom, .difficulty-button { background-color: var(--color-highlight); }
-#share-button { background-color: var(--color-correct); color: var(--color-key-used-text); }
-#share-button:disabled { opacity: 0.7; }
-#close-help-button { position: absolute; top: 5px; right: 15px; font-size: 2.5rem; color: var(--color-text); background: none; border: none; cursor: pointer; padding: 5px; line-height: 1; }
 
-/* --- Responsive Design --- */
+#play-again-button, #start-game-button, #close-help-button-bottom, .difficulty-button { 
+    background: linear-gradient(135deg, var(--color-highlight) 0%, #7061d1 100%);
+    color: white;
+}
+
+#play-again-button:hover, #start-game-button:hover, #close-help-button-bottom:hover, .difficulty-button:hover {
+    background: linear-gradient(135deg, #9688e8 0%, #8071d8 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+#share-button { 
+    background: linear-gradient(135deg, var(--color-correct) 0%, #e07b2a 100%);
+    color: white;
+}
+
+#share-button:hover {
+    background: linear-gradient(135deg, #f59e4c 0%, #f28d3c 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+#share-button:disabled { 
+    opacity: 0.5; 
+    cursor: not-allowed;
+    transform: none;
+}
+
+#close-help-button { 
+    position: absolute; 
+    top: 10px; 
+    right: 15px; 
+    font-size: 2rem; 
+    color: var(--color-text); 
+    background: none; 
+    border: none; 
+    cursor: pointer; 
+    padding: var(--spacing-sm); 
+    line-height: 1;
+    border-radius: var(--radius-full);
+    transition: all 0.2s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#close-help-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-highlight);
+    transform: scale(1.1);
+}
+
+/* Accessibility improvements */
+@media (prefers-contrast: high) {
+    :root {
+        --color-border: #ffffff;
+        --color-text: #ffffff;
+        --color-absent: #999999;
+        --color-bg: #000000;
+    }
+    
+    .cell {
+        border-width: 3px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .cell.animate-jump,
+    .cell.animate-shake,
+    .cell.animate-wobble,
+    .cell.animate-flip {
+        animation: none;
+    }
+}
+
+/* Enhanced responsive design */
 @media (max-width: 600px) {
-    :root { --cell-size: 70px; } /* MODIFIED: Slightly smaller to account for gap */
-    #game-title { font-size: 2rem; }
-    .cell { font-size: 3rem; }
-    #keyboard button { height: 50px; }
-    #win-message h2 { font-size: 4rem; }
-    .win-buttons { flex-direction: row; }
-    #difficulty-buttons { flex-direction: column; }
-    #difficulty-buttons .difficulty-button { width: 80%; }
-    #game-logo { width: 60vw; }
+    :root { 
+        --cell-size: 70px;
+        --spacing-md: 12px;
+        --spacing-lg: 16px;
+    }
+    
+    #game-title { 
+        font-size: 2rem; 
+    }
+    
+    .cell { 
+        font-size: 3rem; 
+    }
+    
+    #keyboard button { 
+        height: 50px;
+        min-width: 44px;
+    }
+    
+    #win-message h2 { 
+        font-size: 4rem; 
+    }
+    
+    .win-buttons { 
+        flex-direction: row; 
+    }
+    
+    #difficulty-buttons { 
+        flex-direction: column; 
+    }
+    
+    #difficulty-buttons .difficulty-button { 
+        width: 80%; 
+    }
+    
+    #game-logo { 
+        width: 60vw; 
+    }
+    
+    #game-stats {
+        gap: var(--spacing-lg);
+        padding: var(--spacing-sm);
+    }
+    
+    #hint-button {
+        min-height: 44px;
+        padding: 12px 16px;
+    }
+    
+    #help-button, #settings-button {
+        width: 44px;
+        height: 44px;
+    }
 }
 
 @media (max-height: 750px) {
-     :root { --cell-size: 60px; }
-     body { padding-bottom: 10px; justify-content: space-between;}
-    .cell { font-size: 2.5rem; }
-    #keyboard button { height: 40px; font-size: 1rem; }
-    #keyboard button.key-wide { font-size: 0.8rem; }
-    #stats-container { margin-bottom: 10px; gap: 10px;}
-    #grid-container { margin-bottom: 15px; }
+    :root { 
+        --cell-size: 60px; 
+    }
+    
+    body { 
+        padding-bottom: 10px; 
+        justify-content: space-between;
+    }
+    
+    .cell { 
+        font-size: 2.5rem; 
+    }
+    
+    #keyboard button { 
+        height: 40px; 
+        font-size: 1rem; 
+    }
+    
+    #keyboard button.key-wide { 
+        font-size: 0.8rem; 
+    }
+    
+    #stats-container { 
+        margin-bottom: 10px; 
+        gap: 10px;
+    }
+    
+    #grid-container { 
+        margin-bottom: 15px;
+        padding: var(--spacing-sm);
+    }
+    
+    #keyboard {
+        gap: 4px;
+        padding: var(--spacing-sm);
+    }
+    
+    .keyboard-row {
+        gap: 3px;
+    }
+}
+
+@media (max-height: 700px) {
+    body {
+        padding: 5px;
+        justify-content: space-between;
+    }
+    
+    #stats-container {
+        margin-bottom: 8px;
+    }
+    
+    #grid-container {
+        margin-bottom: 8px;
+    }
+}
+
+/* Print styles */
+@media print {
+    #keyboard, #help-button, #settings-button, #hint-button {
+        display: none;
+    }
+    
+    body {
+        background: white;
+        color: black;
+    }
+    
+    .cell {
+        border: 2px solid black;
+        background: white;
+        color: black;
+    }
 }
